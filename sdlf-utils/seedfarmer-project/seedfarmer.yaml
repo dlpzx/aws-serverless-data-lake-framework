@@ -1,0 +1,4 @@
+project: sdlf
+description: Serverless Data Lake Framework
+manifestValidationFailOnUnknownFields: true
+# projectPolicyPath: <some relative path to this file>

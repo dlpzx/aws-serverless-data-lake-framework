@@ -1,0 +1,10 @@
+name: foundations
+path: git::https://github.com/awslabs/aws-serverless-data-lake-framework.git//sdlf-foundations?ref=main
+targetAccount: primary
+parameters:
+  - name: Org
+    value: ce
+  - name: Domain
+    value: orodruin
+  - name: Environment
+    value: poc
