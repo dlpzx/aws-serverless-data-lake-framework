@@ -14,14 +14,16 @@ usage () { echo "
     -h -- Opens up this help message
     -r -- AWS Region to deploy to (e.g. eu-west-1)
 
-    crossaccount-cicd-roles -d -p -- Deploys crossaccount IAM roles necessary for DevOps CICD pipelines
+    crossaccount-cicd-roles -d -p -g -- Deploys crossaccount IAM roles necessary for DevOps CICD pipelines
         -d -- AWS account id of the Shared DevOps account
         -p -- Name of the AWS profile to use where a SDLF data domain will reside
         -f -- Enable optional features: monitoring, vpc. Multiple -f options can be given.
-    devops-account -d -p -- Deploys SDLF DevOps/CICD/Tooling resources
+        -g -- Generic prefix for resource names (default: sdlf)
+    devops-account -d -p -g -- Deploys SDLF DevOps/CICD/Tooling resources
         -d -- Comma-delimited list of AWS account ids where SDLF data domains are deployed
         -p -- Name of the AWS profile to use where SDLF DevOps/CICD/Tooling will reside
         -f -- Enable optional features: gluejobdeployer, lambdalayerbuilder, monitoring, vpc. Multiple -f options can be given.
+        -g -- Generic prefix for resource names (default: sdlf)
 
     Examples
 
@@ -29,6 +31,9 @@ usage () { echo "
     deploys IAM roles in the AWS account ${underline}aws_account_profile${notunderline} belongs to.
     These roles are necessary for the DevOps account CICD pipelines to work.
     They should be deployed first.
+
+    ${bold}./deploy.sh${notbold} ${underline}crossaccount-cicd-roles${notunderline} ${bold}-d${notbold} ${underline}devops_aws_account_id${notunderline} ${bold}-p${notbold} ${underline}aws_account_profile${notunderline} ${bold}-g${notbold} ${underline}myorg${notunderline}
+    deploys IAM roles with custom prefix 'myorg' instead of default 'sdlf'.
 
     ${bold}./deploy.sh${notbold} ${underline}devops-account${notunderline} ${bold}-d${notbold} ${underline}domain_aws_account_id1,domain_aws_account_id2,...${notunderline} ${bold}-p${notbold} ${underline}devops_aws_account_profile${notunderline}
     deploys SDLF DevOps/CICD/Tooling resources in the AWS account ${underline}devops_aws_account_profile${notunderline} belongs to.
@@ -55,7 +60,8 @@ crossaccount_cicd_roles () {
     rflag=false
     dflag=false
     fflag=false
-    options=':p:r:d:f:'
+    gflag=false
+    options=':p:r:d:g:f:'
     while getopts "$options" option
     do
         case "$option" in
@@ -63,6 +69,7 @@ crossaccount_cicd_roles () {
             r  ) rflag=true; REGION=${OPTARG};;
             d  ) dflag=true; DEVOPS_ACCOUNT=${OPTARG};;
             f  ) fflag=true; FEATURES+=("${OPTARG}");;
+            g  ) gflag=true; GENERIC_PREFIX=${OPTARG};;
             \? ) echo "Unknown option: -$OPTARG" >&2; exit 1;;
             :  ) echo "Missing option argument for -$OPTARG" >&2; exit 1;;
             *  ) echo "Unimplemented option: -$OPTARG" >&2; exit 1;;
@@ -84,6 +91,12 @@ crossaccount_cicd_roles () {
         echo "-d must be specified when using the crossaccount-cicd-roles command" >&2
         exit 1
     fi
+    if ! "$gflag"
+    then
+        echo "-g not specified, using default 'sdlf'..." >&2
+        GENERIC_PREFIX="sdlf"
+    fi
+
     if "$fflag"
     then
         MONITORING=false
@@ -137,7 +150,8 @@ devops_account () {
     rflag=false
     dflag=false
     fflag=false
-    options=':p:r:d:f:'
+    gflag=false
+    options=':p:r:d:g:f:'
     while getopts "$options" option
     do
         case "$option" in
@@ -145,6 +159,7 @@ devops_account () {
             r  ) rflag=true; REGION=${OPTARG};;
             d  ) dflag=true; DOMAIN_ACCOUNTS=${OPTARG};;
             f  ) fflag=true; FEATURES+=("${OPTARG}");;
+            g  ) gflag=true; GENERIC_PREFIX=${OPTARG};;
             \? ) echo "Unknown option: -$OPTARG" >&2; exit 1;;
             :  ) echo "Missing option argument for -$OPTARG" >&2; exit 1;;
             *  ) echo "Unimplemented option: -$OPTARG" >&2; exit 1;;
@@ -165,6 +180,11 @@ devops_account () {
     then
         echo "-d must be specified when using the devops-account command" >&2
         exit 1
+    fi
+    if ! "$gflag"
+    then
+        echo "-g not specified, using default 'sdlf'..." >&2
+        GENERIC_PREFIX="sdlf"
     fi
     if "$fflag"
     then
@@ -256,6 +276,7 @@ devops_account () {
         --stack-name "$STACK_NAME" \
         --template-file "$DIRNAME"/output/packaged-template-cicd-sdlf-repositories.yaml \
         --parameter-overrides \
+            pGenericPrefix="$GENERIC_PREFIX" \
             pKMSKey=/SDLF/KMS/CICDKeyId \
         --tags Framework=sdlf \
         --capabilities "CAPABILITY_NAMED_IAM" "CAPABILITY_AUTO_EXPAND" \
@@ -264,10 +285,10 @@ devops_account () {
     template_protection "$STACK_NAME" "$REGION" "$DEVOPS_AWS_PROFILE"
     rm -Rf "$DIRNAME"/output
 
-    declare -a REPOSITORIES=("sdlf-cicd" "sdlf-foundations" "sdlf-team" "sdlf-pipeline" "sdlf-dataset" "sdlf-datalakeLibrary" "sdlf-stageA" "sdlf-stageB" "sdlf-stage-lambda" "sdlf-stage-glue" "sdlf-main")
+    declare -a REPOSITORIES=("${GENERIC_PREFIX}-cicd" "${GENERIC_PREFIX}-foundations" "${GENERIC_PREFIX}-team" "${GENERIC_PREFIX}-pipeline" "${GENERIC_PREFIX}-dataset" "${GENERIC_PREFIX}-datalakeLibrary" "${GENERIC_PREFIX}-stageA" "${GENERIC_PREFIX}-stageB" "${GENERIC_PREFIX}-stage-lambda" "${GENERIC_PREFIX}-stage-glue" "${GENERIC_PREFIX}-main")
     if "$MONITORING"
     then
-        REPOSITORIES+=("sdlf-monitoring")
+        REPOSITORIES+=("${GENERIC_PREFIX}-monitoring")
     fi
     for REPOSITORY in "${REPOSITORIES[@]}"
     do
@@ -277,10 +298,10 @@ devops_account () {
             GITLAB_ACCESSTOKEN=$(aws --region "$REGION" --profile "$DEVOPS_AWS_PROFILE" ssm get-parameter --with-decryption --name /SDLF/GitLab/AccessToken --query "Parameter.Value" --output text)
             GITLAB_REPOSITORY_URL="https://aws:$GITLAB_ACCESSTOKEN@${GITLAB_URL#https://}sdlf/$REPOSITORY.git"
 
-            if [ "$REPOSITORY" = "sdlf-main" ]
+            if [ "$REPOSITORY" = "${GENERIC_PREFIX}-main" ]
             then
-                mkdir sdlf-main
-                cp sdlf-cicd/README.md sdlf-main/
+                mkdir ${GENERIC_PREFIX}-main
+                cp ${GENERIC_PREFIX}-cicd/README.md ${GENERIC_PREFIX}-main/
             fi
             pushd "$REPOSITORY" || exit
             if [ ! -d .git ] # if .git exists, deploy.sh has likely been run before - do not try to push the base repositories
@@ -299,10 +320,10 @@ devops_account () {
             #GITHUB_ACCESSTOKEN=$(aws --region "$REGION" --profile "$DEVOPS_AWS_PROFILE" ssm get-parameter --with-decryption --name /SDLF/GitHub/AccessToken --query "Parameter.Value" --output text)
             GITHUB_REPOSITORY_URL="https://github.com/$REPOSITORY.git"
 
-            if [ "$REPOSITORY" = "sdlf-main" ]
+            if [ "$REPOSITORY" = "${GENERIC_PREFIX}-main" ]
             then
-                mkdir sdlf-main
-                cp sdlf-cicd/README.md sdlf-main/
+                mkdir ${GENERIC_PREFIX}-main
+                cp ${GENERIC_PREFIX}-cicd/README.md ${GENERIC_PREFIX}-main/
             fi
             pushd "$REPOSITORY" || exit
             if [ ! -d .git ] # if .git exists, deploy.sh has likely been run before - do not try to push the base repositories

@@ -2,49 +2,14 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: Multi-environment CICD team repos resources in shared DevOps account
 
 Parameters:
+  pGenericPrefix:
+    Description: Generic prefix for resource names
+    Type: String
+    Default: sdlf
   pKMSKey:
     Description: The KMS key used by CodeBuild and CodePipeline
     Type: AWS::SSM::Parameter::Value<String>
     Default: /SDLF/KMS/CICDKeyId
-  pCicdRepository:
-    Type: String
-    Default: sdlf-cicd
-  pFoundationsRepository:
-    Type: String
-    Default: sdlf-foundations
-  pTeamRepository:
-    Type: String
-    Default: sdlf-team
-  pPipelineRepository:
-    Type: String
-    Default: sdlf-pipeline
-  pDatasetRepository:
-    Type: String
-    Default: sdlf-dataset
-  pStageARepository:
-    Type: String
-    Default: sdlf-stageA
-  pStageLambdaRepository:
-    Type: String
-    Default: sdlf-stage-lambda
-  pStageBRepository:
-    Type: String
-    Default: sdlf-stageB
-  pStageGlueRepository:
-    Type: String
-    Default: sdlf-stage-glue
-  pDatalakeLibraryRepository:
-    Type: String
-    Default: sdlf-datalakeLibrary
-  pUtilsRepository:
-    Type: String
-    Default: sdlf-utils
-  pMainRepository:
-    Type: String
-    Default: sdlf-main
-  pMonitoringRepository:
-    Type: String
-    Default: sdlf-monitoring
   pEnableMonitoring:
     Description: Build sdlf-monitoring cloudformation module as part of domain pipelines
     Type: AWS::SSM::Parameter::Value<String>
@@ -66,8 +31,8 @@ Resources:
       Code:
         BranchName: main
         S3: ../sdlf-cicd
-      RepositoryDescription: sdlf-cicd repository
-      RepositoryName: !Ref pCicdRepository
+      RepositoryDescription: !Sub ${pGenericPrefix}-cicd repository
+      RepositoryName: !Sub ${pGenericPrefix}-cicd
       KmsKeyId: !Ref pKMSKey
 
   rFoundationsCodeCommit:
@@ -81,8 +46,8 @@ Resources:
       Code:
         BranchName: main
         S3: ../sdlf-foundations
-      RepositoryDescription: sdlf-foundations repository
-      RepositoryName: !Ref pFoundationsRepository
+      RepositoryDescription: !Sub ${pGenericPrefix}-foundations repository
+      RepositoryName: !Sub ${pGenericPrefix}-foundations
       KmsKeyId: !Ref pKMSKey
 
   rTeamCodeCommit:
@@ -96,8 +61,8 @@ Resources:
       Code:
         BranchName: main
         S3: ../sdlf-team
-      RepositoryDescription: sdlf-team repository
-      RepositoryName: !Ref pTeamRepository
+      RepositoryDescription: !Sub ${pGenericPrefix}-team repository
+      RepositoryName: !Sub ${pGenericPrefix}-team
       KmsKeyId: !Ref pKMSKey
 
   rPipelineCodeCommit:
@@ -111,8 +76,8 @@ Resources:
       Code:
         BranchName: main
         S3: ../sdlf-pipeline
-      RepositoryDescription: sdlf-pipeline repository
-      RepositoryName: !Ref pPipelineRepository
+      RepositoryDescription: !Sub ${pGenericPrefix}-pipeline repository
+      RepositoryName: !Sub ${pGenericPrefix}-pipeline
       KmsKeyId: !Ref pKMSKey
 
   rDatasetCodeCommit:
@@ -126,8 +91,8 @@ Resources:
       Code:
         BranchName: main
         S3: ../sdlf-dataset
-      RepositoryDescription: sdlf-dataset repository
-      RepositoryName: !Ref pDatasetRepository
+      RepositoryDescription: !Sub ${pGenericPrefix}-dataset repository
+      RepositoryName: !Sub ${pGenericPrefix}-dataset
       KmsKeyId: !Ref pKMSKey
 
   rStageACodeCommit:
@@ -141,8 +106,8 @@ Resources:
       Code:
         BranchName: main
         S3: ../sdlf-stageA
-      RepositoryDescription: sdlf-stageA repository
-      RepositoryName: !Ref pStageARepository
+      RepositoryDescription: !Sub ${pGenericPrefix}-stageA repository
+      RepositoryName: !Sub ${pGenericPrefix}-stageA
       KmsKeyId: !Ref pKMSKey
 
   rStageLambdaCodeCommit:
@@ -156,8 +121,8 @@ Resources:
       Code:
         BranchName: main
         S3: ../sdlf-stage-lambda
-      RepositoryDescription: sdlf-stage-lambda repository
-      RepositoryName: !Ref pStageLambdaRepository
+      RepositoryDescription: !Sub ${pGenericPrefix}-stage-lambda repository
+      RepositoryName: !Sub ${pGenericPrefix}-stage-lambda
       KmsKeyId: !Ref pKMSKey
 
   rStageBCodeCommit:
@@ -171,8 +136,8 @@ Resources:
       Code:
         BranchName: main
         S3: ../sdlf-stageB
-      RepositoryDescription: sdlf-stageB repository
-      RepositoryName: !Ref pStageBRepository
+      RepositoryDescription: !Sub ${pGenericPrefix}-stageB repository
+      RepositoryName: !Sub ${pGenericPrefix}-stageB
       KmsKeyId: !Ref pKMSKey
 
   rStageGlueCodeCommit:
@@ -186,8 +151,8 @@ Resources:
       Code:
         BranchName: main
         S3: ../sdlf-stage-glue
-      RepositoryDescription: sdlf-stage-glue repository
-      RepositoryName: !Ref pStageGlueRepository
+      RepositoryDescription: !Sub ${pGenericPrefix}-stage-glue repository
+      RepositoryName: !Sub ${pGenericPrefix}-stage-glue
       KmsKeyId: !Ref pKMSKey
 
   rDatalakeLibraryCodeCommit:
@@ -201,8 +166,8 @@ Resources:
       Code:
         BranchName: main
         S3: ../sdlf-datalakeLibrary
-      RepositoryDescription: sdlf-datalakeLibrary repository
-      RepositoryName: !Ref pDatalakeLibraryRepository
+      RepositoryDescription: !Sub ${pGenericPrefix}-datalakeLibrary repository
+      RepositoryName: !Sub ${pGenericPrefix}-datalakeLibrary
       KmsKeyId: !Ref pKMSKey
 
   rMainCodeCommit:
@@ -216,8 +181,8 @@ Resources:
       Code:
         BranchName: main
         S3: ./README.md
-      RepositoryDescription: sdlf-main repository
-      RepositoryName: !Ref pMainRepository
+      RepositoryDescription: !Sub ${pGenericPrefix}-main repository
+      RepositoryName: !Sub ${pGenericPrefix}-main
       KmsKeyId: !Ref pKMSKey
 
   rMonitoringCodeCommit:
@@ -232,8 +197,8 @@ Resources:
       Code:
         BranchName: main
         S3: ../sdlf-monitoring
-      RepositoryDescription: sdlf-monitoring repository
-      RepositoryName: !Ref pMonitoringRepository
+      RepositoryDescription: !Sub ${pGenericPrefix}-monitoring repository
+      RepositoryName: !Sub ${pGenericPrefix}-monitoring
       KmsKeyId: !Ref pKMSKey
 
   rCicdCodeCommitSsm:
@@ -315,14 +280,6 @@ Resources:
       Type: String
       Value: !GetAtt rDatalakeLibraryCodeCommit.Name
       Description: Name of the DatalakeLibrary repository
-
-  rUtilsCodeCommitSsm:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: /SDLF/CodeCommit/UtilsCodeCommit
-      Type: String
-      Value: !Ref pUtilsRepository
-      Description: Name of the Utils repository
 
   rMainCodeCommitSsm:
     Type: AWS::SSM::Parameter
