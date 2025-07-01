@@ -9,7 +9,7 @@ Parameters:
   pOrg:
     Description: Name of the organization owning the datalake
     Type: String
-    Default: "{{resolve:ssm:/SDLF/Misc/pOrg}}"
+    Default: !Sub "{{resolve:ssm:/SDLF/${pDomain}/Misc/pOrg}}"
   pDomain:
     Description: Data domain name
     Type: String
@@ -17,7 +17,7 @@ Parameters:
   pEnv:
     Description: Environment name
     Type: String
-    Default: "{{resolve:ssm:/SDLF/Misc/pEnv}}"
+    Default: !Sub "{{resolve:ssm:/SDLF/${pDomain}/Misc/pEnv}}"
   pTeamName:
     Description: The name of the team owning the pipeline (all lowercase, no symbols or spaces)
     Type: String

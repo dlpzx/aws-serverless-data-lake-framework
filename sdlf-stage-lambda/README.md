@@ -30,7 +30,7 @@ rMainA:
                 "detail-type": ["Object Created"],
                 "detail": {
                     "bucket": {
-                        "name": ["{{resolve:ssm:/SDLF/S3/RawBucket}}"]
+                        "name": ["{{resolve:ssm:/SDLF/proserve/S3/RawBucket}}"]
                     },
                     "object": {
                         "key": [{ "prefix": "iot/legislators/" }]

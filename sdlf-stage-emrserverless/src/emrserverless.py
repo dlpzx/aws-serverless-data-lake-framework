@@ -27,8 +27,15 @@ class StageEmrserverless(Construct):
 
         # using context values would be better(?) for CDK but we haven't decided yet what the story is around ServiceCatalog and CloudFormation modules
         # perhaps both (context values feeding into CfnParameter) would be a nice-enough solution. Not sure though. TODO
+        p_domain = CfnParameter(
+            self,
+            "pDomain",
+            description="Data domain name",
+            type="String",
+        )
+        p_domain.override_logical_id("pDomain")
         p_rawbucket = CfnParameter(
-            self, "pRawBucket", description="Raw bucket", type="String", default="{{resolve:ssm:/SDLF/S3/RawBucket:1}}"
+            self, "pRawBucket", description="Raw bucket", type="String", default=f"{{resolve:ssm:/SDLF/{p_domain.value_as_string}/S3/RawBucket:1}}"
         )
         p_rawbucket.override_logical_id("pRawBucket")
         p_stagebucket = CfnParameter(
@@ -36,7 +43,7 @@ class StageEmrserverless(Construct):
             "pStageBucket",
             description="Stage Bucket",
             type="String",
-            default="{{resolve:ssm:/SDLF/S3/StageBucket:1}}",
+            default=f"{{resolve:ssm:/SDLF/{p_domain.value_as_string}/S3/StageBucket:1}}",
         )
         p_stagebucket.override_logical_id("pStageBucket")
         p_enabletracing = CfnParameter(

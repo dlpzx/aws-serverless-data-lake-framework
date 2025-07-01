@@ -184,6 +184,8 @@ Data Source → Multiple Stage Options → Analytics Layer
 
 ## Migration from v1 to v2
 
+**We strongly recommend users to deploy v2 in a separate set of AWS accounts, especially for the foundations.**
+
 ### Pre-Migration Assessment
 
 Before migrating from SDLF v1 to v2, assess your current implementation:
@@ -201,6 +203,20 @@ Before migrating from SDLF v1 to v2, assess your current implementation:
 3. **Plan Migration Strategy**
    - Review recommended migration path
    - Plan for data migration and pipeline testing
+
+### Rollback Plan
+
+Prepare rollback procedures in case of migration issues:
+
+1. **Configuration Rollback**
+   - Keep v1 configurations backed up*
+   - Document rollback procedures
+   - Test rollback in non-production environment
+
+2. **Data Rollback**
+   - Maintain v1 data infrastructure (S3 Buckets, KMS keys) during migration period
+   - Plan for data synchronization if needed
+   - Document data recovery procedures
 
 ### Recommended migration approach
 
@@ -253,17 +269,3 @@ Blue/Green swap:
    - And Data is fully migrated to v2
    - And downstream applications only read from v2 datasets
    - Then we can plan the decommission of sdlf v1 - since everything is infrastructure as code you will need to delete the old CloudFormation stacks from the newest to the oldest to avoid orphan resources.
-
-### Rollback Plan
-
-Prepare rollback procedures in case of migration issues:
-
-1. **Configuration Rollback**
-   - Keep v1 configurations backed up
-   - Document rollback procedures
-   - Test rollback in non-production environment
-
-2. **Data Rollback**
-   - Maintain v1 data infrastructure (S3 Buckets, KMS keys) during migration period
-   - Plan for data synchronization if needed
-   - Document data recovery procedures

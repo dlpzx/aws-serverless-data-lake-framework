@@ -8,7 +8,7 @@ Parameters:
   pOrg:
     Description: Name of the organization owning the datalake
     Type: String
-    Default: "{{resolve:ssm:/SDLF/Misc/pOrg}}"
+    Default: !Sub "{{resolve:ssm:/SDLF/${pDomain}/Misc/pOrg}}"
   pDomain:
     Description: Data domain name
     Type: String
@@ -16,26 +16,26 @@ Parameters:
   pEnvironment:
     Description: Environment name
     Type: String
-    Default: "{{resolve:ssm:/SDLF/Misc/pEnv}}"
+    Default: !Sub "{{resolve:ssm:/SDLF/${pDomain}/Misc/pEnv}}"
   pRawBucket:
     Description: The raw bucket for the solution
     Type: String
-    Default: "{{resolve:ssm:/SDLF/S3/RawBucket}}"
+    Default: !Sub "{{resolve:ssm:/SDLF/${pDomain}/S3/RawBucket}}"
   pStageBucket:
     Description: The stage bucket for the solution
     Type: String
-    Default: "{{resolve:ssm:/SDLF/S3/StageBucket}}"
+    Default: !Sub "{{resolve:ssm:/SDLF/${pDomain}/S3/StageBucket}}"
   pAnalyticsBucket:
     Description: The analytics bucket for the solution
     Type: String
-    Default: "{{resolve:ssm:/SDLF/S3/AnalyticsBucket}}"
+    Default: !Sub "{{resolve:ssm:/SDLF/${pDomain}/S3/AnalyticsBucket}}"
   pArtifactsBucket:
     Description: The artifacts bucket used by CodeBuild and CodePipeline
     Type: String
-    Default: "{{resolve:ssm:/SDLF/S3/ArtifactsBucket}}"
+    Default: !Sub "{{resolve:ssm:/SDLF/${pDomain}/S3/ArtifactsBucket}}"
   pLakeFormationDataAccessRole:
     Type: String
-    Default: "{{resolve:ssm:/SDLF/IAM/LakeFormationDataAccessRoleArn}}"
+    Default: !Sub "{{resolve:ssm:/SDLF/${pDomain}/IAM/LakeFormationDataAccessRoleArn}}"
   pDatasetName:
     Description: The name of the dataset (all lowercase, no symbols or spaces)
     Type: String
@@ -301,7 +301,7 @@ Resources:
             KmsKeyArn: !If
               - IsS3Prefix
               - !GetAtt rKMSDataKey.Arn
-              - "{{resolve:ssm:/SDLF/KMS/KeyArn}}"
+              - !Sub "{{resolve:ssm:/SDLF/${pDomain}/KMS/KeyArn}}"
 
   rGlueSecurityConfigurationSsm:
     Type: AWS::SSM::Parameter
@@ -349,11 +349,11 @@ Resources:
                 "AtRestEncryptionConfiguration" : {
                   "S3EncryptionConfiguration" : {
                     "EncryptionMode" : "SSE-KMS",
-                    "AwsKmsKey": "{{resolve:ssm:/SDLF/KMS/KeyArn}}"
+                    "AwsKmsKey": : !Sub "{{resolve:ssm:/SDLF/${pDomain}/KMS/KeyArn}}"
                   },
                   "LocalDiskEncryptionConfiguration" : {
                     "EncryptionKeyProviderType" : "AwsKms",
-                    "AwsKmsKey" : "{{resolve:ssm:/SDLF/KMS/KeyArn}}",
+                    "AwsKmsKey" : !Sub "{{resolve:ssm:/SDLF/${pDomain}/KMS/KeyArn}}",
                     "EnableEbsEncryption" : true
                   }
                 }
@@ -434,9 +434,9 @@ Resources:
                   - IsS3Prefix
                   - - !GetAtt rKMSInfraKey.Arn
                     - !GetAtt rKMSDataKey.Arn
-                    - "{{resolve:ssm:/SDLF/KMS/KeyArn}}"
+                    - !Sub "{{resolve:ssm:/SDLF/${pDomain}/KMS/KeyArn}}"
                   - - !GetAtt rKMSInfraKey.Arn
-                    - "{{resolve:ssm:/SDLF/KMS/KeyArn}}"
+                    - !Sub "{{resolve:ssm:/SDLF/${pDomain}/KMS/KeyArn}}"
               - Effect: Allow
                 Action:
                   - lakeformation:GetDataAccess # W11 exception
@@ -854,9 +854,9 @@ Resources:
               - IsS3Prefix
               - - !GetAtt rKMSInfraKey.Arn
                 - !GetAtt rKMSDataKey.Arn
-                - "{{resolve:ssm:/SDLF/KMS/KeyArn}}"
+                - !Sub "{{resolve:ssm:/SDLF/${pDomain}/KMS/KeyArn}}"
               - - !GetAtt rKMSInfraKey.Arn
-                - "{{resolve:ssm:/SDLF/KMS/KeyArn}}"
+                - !Sub "{{resolve:ssm:/SDLF/${pDomain}/KMS/KeyArn}}"
           - Effect: Allow
             Action:
               - ssm:GetParameter

@@ -10,7 +10,7 @@ Parameters:
   pOrg:
     Description: Name of the organization owning the datalake
     Type: String
-    Default: "{{resolve:ssm:/SDLF/Misc/pOrg}}"
+    Default: !Sub "{{resolve:ssm:/SDLF/${pDomain}/Misc/pOrg}}"
   pDomain:
     Description: Data domain name
     Type: String
@@ -26,7 +26,7 @@ Parameters:
   pEnv:
     Description: Environment name
     Type: String
-    Default: "{{resolve:ssm:/SDLF/Misc/pEnv}}"
+    Default: !Sub "{{resolve:ssm:/SDLF/${pDomain}/Misc/pEnv}}"
   pStageName:
     Description: Name of the stage (all lowercase, hyphen allowed, no other symbols or spaces)
     Type: String
@@ -46,7 +46,7 @@ Parameters:
   pStageBucket:
     Description: The stage bucket for the solution
     Type: String
-    Default: "{{resolve:ssm:/SDLF/S3/StageBucket}}"
+    Default: !Sub "{{resolve:ssm:/SDLF/${pDomain}/S3/StageBucket}}"
   pCloudWatchLogsRetentionInDays:
     Description: The number of days log events are kept in CloudWatch Logs
     Type: Number

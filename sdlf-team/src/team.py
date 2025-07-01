@@ -35,12 +35,19 @@ class Team(Construct):
             allowed_pattern="[a-z0-9]{2,12}",
         )
         p_teamname.override_logical_id("pTeamName")
+        p_domain = CfnParameter(
+            self,
+            "pDomain",
+            description="Data domain name",
+            type="String",
+        )
+        p_domain.override_logical_id("pDomain")
         p_athenabucket = CfnParameter(
             self,
             "pAthenaBucket",
             description="Athena bucket",
             type="String",
-            default="{{resolve:ssm:/SDLF/S3/AthenaBucket:1}}",
+            default=f"{{resolve:ssm:/SDLF/{p_domain.value_as_string}/S3/AthenaBucket:1}}",
         )
         p_athenabucket.override_logical_id("pAthenaBucket")
 

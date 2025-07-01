@@ -9,7 +9,7 @@ Parameters:
   pOrg:
     Description: Name of the organization owning the datalake
     Type: String
-    Default: "{{resolve:ssm:/SDLF/Misc/pOrg}}"
+    Default: !Sub "{{resolve:ssm:/SDLF/${pDomain}/Misc/pOrg}}"
   pDomain:
     Description: Data domain name
     Type: String
@@ -17,23 +17,23 @@ Parameters:
   pAnalyticsBucket:
     Description: The analytics bucket for the solution
     Type: String
-    Default: "{{resolve:ssm:/SDLF/S3/AnalyticsBucket}}"
+    Default: !Sub "{{resolve:ssm:/SDLF/${pDomain}/S3/AnalyticsBucket}}"
   pRawBucket:
     Description: The raw bucket for the solution
     Type: String
-    Default: "{{resolve:ssm:/SDLF/S3/RawBucket}}"
+    Default: !Sub "{{resolve:ssm:/SDLF/${pDomain}/S3/RawBucket}}"
   pAthenaBucket:
     Description: S3 Athena bucket
     Type: String
-    Default: "{{resolve:ssm:/SDLF/S3/AthenaBucket}}"
+    Default: !Sub "{{resolve:ssm:/SDLF/${pDomain}/S3/AthenaBucket}}"
   pEnvironment:
     Description: Environment name
     Type: String
-    Default: "{{resolve:ssm:/SDLF/Misc/pEnv}}"
+    Default: !Sub "{{resolve:ssm:/SDLF/${pDomain}/Misc/pEnv}}"
   pArtifactsBucket:
     Description: The artifacts bucket used by CodeBuild and CodePipeline
     Type: String
-    Default: "{{resolve:ssm:/SDLF/S3/ArtifactsBucket}}"
+    Default: !Sub "{{resolve:ssm:/SDLF/${pDomain}/S3/ArtifactsBucket}}"
 #  pSNSNotificationsEmail:
 #    Description: Email address for SNS notifications
 #    Type: String
@@ -41,14 +41,14 @@ Parameters:
   pStageBucket:
     Description: The stage bucket for the solution
     Type: String
-    Default: "{{resolve:ssm:/SDLF/S3/StageBucket}}"
+    Default: !Sub "{{resolve:ssm:/SDLF/${pDomain}/S3/StageBucket}}"
   pTeamName:
     Description: Name of the team (all lowercase, no symbols or spaces)
     Type: String
     AllowedPattern: "[a-z0-9]{2,12}"
   pLakeFormationDataAccessRole:
     Type: String
-    Default: "{{resolve:ssm:/SDLF/IAM/LakeFormationDataAccessRoleArn}}"
+    Default: !Sub "{{resolve:ssm:/SDLF/${pDomain}/IAM/LakeFormationDataAccessRoleArn}}"
   pCicdRole:
     Description: Name of the IAM role used to deploy SDLF constructs
     Type: String
@@ -441,7 +441,7 @@ Resources:
               - kms:GenerateDataKey*
               - kms:ReEncrypt*
             Resource:
-              - "{{resolve:ssm:/SDLF/KMS/KeyArn}}"
+              - !Sub "{{resolve:ssm:/SDLF/${pDomain}/KMS/KeyArn}}"
               - !GetAtt rKMSDataKey.Arn
               - !GetAtt rKMSInfraKey.Arn
           - Effect: Allow
@@ -668,7 +668,7 @@ Resources:
                 Resource:
                   - !GetAtt rKMSInfraKey.Arn
                   - !GetAtt rKMSDataKey.Arn
-                  - "{{resolve:ssm:/SDLF/KMS/KeyArn}}"
+                  - !Sub "{{resolve:ssm:/SDLF/${pDomain}/KMS/KeyArn}}"
               - Effect: Allow
                 Action:
                   - lakeformation:GetDataAccess # W11 exception

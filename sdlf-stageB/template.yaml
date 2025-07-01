@@ -10,7 +10,7 @@ Parameters:
   pOrg:
     Description: Name of the organization owning the datalake
     Type: String
-    Default: "{{resolve:ssm:/SDLF/Misc/pOrg}}"
+    Default: !Sub "{{resolve:ssm:/SDLF/${pDomain}/Misc/pOrg}}"
   pDomain:
     Description: Data domain name
     Type: String
@@ -18,7 +18,7 @@ Parameters:
   pDatasetBucket:
     Description: The raw or central bucket for the solution
     Type: String
-    Default: "{{resolve:ssm:/SDLF/S3/RawBucket}}"
+    Default: !Sub "{{resolve:ssm:/SDLF/${pDomain}/S3/RawBucket}}"
   pTeamName:
     Description: Name of the team owning the pipeline (all lowercase, no symbols or spaces)
     Type: String
@@ -30,7 +30,7 @@ Parameters:
   pEnv:
     Description: Environment name
     Type: String
-    Default: "{{resolve:ssm:/SDLF/Misc/pEnv}}"
+    Default: !Sub "{{resolve:ssm:/SDLF/${pDomain}/Misc/pEnv}}"
   pStageName:
     Description: Name of the stage (all lowercase, hyphen allowed, no other symbols or spaces)
     Type: String

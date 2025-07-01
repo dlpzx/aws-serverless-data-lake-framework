@@ -4,16 +4,16 @@ Description: CICD pipelines to automate SDLF workflows
 Parameters:
   pArtifactsBucket:
     Description: The artifacts bucket used by CodeBuild and CodePipeline
-    Type: AWS::SSM::Parameter::Value<String>
-    Default: /SDLF/S3/DevOpsArtifactsBucket
+    Type: String
+    Default:  !Sub "{{resolve:ssm:/SDLF/${pDomain}/S3/ArtifactsBucket}"
   pKMSKey:
     Description: The KMS key used by CodeBuild and CodePipeline
-    Type: AWS::SSM::Parameter::Value<String>
-    Default: /SDLF/KMS/CICDKeyId
+    Type: String
+    Default: !Sub "{{resolve:ssm:/SDLF/${pDomain}/KMS/CICDKeyId}"
   pEnableVpc:
     Description: Deploy SDLF resources in a VPC
-    Type: AWS::SSM::Parameter::Value<String>
-    Default: /SDLF/VPC/Enabled
+    Type: String
+    Default: !Sub "{{resolve:ssm:/SDLF/${pDomain}/VPC/Enabled}"
 
 Conditions:
   RunInVpc: !Equals [!Ref pEnableVpc, true]

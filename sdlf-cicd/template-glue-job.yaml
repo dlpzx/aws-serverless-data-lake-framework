@@ -3,10 +3,14 @@ Transform: AWS::LanguageExtensions
 Description: Deploy Glue jobs
 
 Parameters:
+  pDomain:
+    Description: Data domain name
+    Type: String
+    Default: "{{resolve:ssm:/SDLF/Misc/pDomain}}"
   pArtifactsBucket:
     Description: The artifacts bucket used by CodeBuild and CodePipeline
-    Type: AWS::SSM::Parameter::Value<String>
-    Default: /SDLF/S3/ArtifactsBucket
+    Type: String
+    Default:  !Sub "{{resolve:ssm:/SDLF/${pDomain}/S3/ArtifactsBucket}"
   pTeamName:
     Description: Name of the team (all lowercase, no symbols or spaces)
     Type: String
@@ -61,7 +65,7 @@ Resources:
                 Resource:
                   - !Sub "{{resolve:ssm:/SDLF/KMS/${pTeamName}/InfraKeyId}}"
                   - !Sub "{{resolve:ssm:/SDLF/KMS/${pTeamName}/DataKeyId}}"
-                  - "{{resolve:ssm:/SDLF/KMS/KeyArn}}"
+                  - !Sub "{{resolve:ssm:/SDLF/${pDomain}/KMS/KeyArn}}"
 
   "Fn::ForEach::GlueJobResources":
   - GlueJobName
