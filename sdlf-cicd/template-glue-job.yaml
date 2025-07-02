@@ -6,11 +6,11 @@ Parameters:
   pDomain:
     Description: Data domain name
     Type: String
-    Default: "{{resolve:ssm:/SDLF/Misc/pDomain}}"
+    Default: "{{resolve:ssm:/SDLF2/Misc/pDomain}}"
   pArtifactsBucket:
     Description: The artifacts bucket used by CodeBuild and CodePipeline
     Type: String
-    Default:  !Sub "{{resolve:ssm:/SDLF/${pDomain}/S3/ArtifactsBucket}"
+    Default:  "{{resolve:ssm:/SDLF2/S3/ArtifactsBucket}"
   pTeamName:
     Description: Name of the team (all lowercase, no symbols or spaces)
     Type: String
@@ -65,7 +65,7 @@ Resources:
                 Resource:
                   - !Sub "{{resolve:ssm:/SDLF/KMS/${pTeamName}/InfraKeyId}}"
                   - !Sub "{{resolve:ssm:/SDLF/KMS/${pTeamName}/DataKeyId}}"
-                  - !Sub "{{resolve:ssm:/SDLF/${pDomain}/KMS/KeyArn}}"
+                  - "{{resolve:ssm:/SDLF2/KMS/KeyArn}}"
 
   "Fn::ForEach::GlueJobResources":
   - GlueJobName

@@ -120,7 +120,7 @@ Resources:
                   - !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/SDLF/CFN/*
                   - !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/SDLF/VPC/Enabled
                   - !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/SDLF/VPC/SubnetIds
-                  - !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/SDLF/*/S3/ArtifactsBucket #TODO REVIEW
+                  - !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/SDLF2/S3/ArtifactsBucket
               - Effect: Allow
                 Action:
                   - cloudformation:CreateChangeSet
@@ -157,7 +157,7 @@ Resources:
                 Action:
                   - cloudformation:DescribeStacks
                 Resource:
-                  - !Sub arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/sdlf-*
+                  - !Sub arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/sdlf*
               - !If
                 - RunInVpc
                 - Effect: Allow
@@ -268,7 +268,7 @@ Resources:
                   - ssm:RemoveTagsFromResource
                   - ssm:DeleteParameter
                 Resource:
-                  - !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/SDLF/Lambda/LatestDatalakeLibraryLayer
+                  - !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/SDLF2/Lambda/LatestDatalakeLibraryLayer
 
   rDomainCloudFormationRole:
     Type: AWS::IAM::Role
@@ -333,7 +333,7 @@ Resources:
                   - cloudformation:GetTemplate
                   - cloudformation:GetTemplateSummary
                 Resource:
-                  - !Sub arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/sdlf-*
+                  - !Sub arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/sdlf*
               - Effect: Allow
                 Action:
                   - cloudformation:ListStacks # W11 exception
@@ -404,7 +404,7 @@ Resources:
                   - iam:CreateRole
                 Resource:
                   - !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/sdlf-domain-*
-                  - !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/sdlf-*/sdlf-domain-*
+                  - !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/sdlf*/sdlf-domain-*
               - Effect: Allow
                 Action:
                   - iam:ListPolicies # W11 exception
@@ -427,7 +427,7 @@ Resources:
                 Action:
                   - lambda:CreateFunction
                   - lambda:UpdateFunctionConfiguration
-                Resource: !Sub arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:sdlf-*
+                Resource: !Sub arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:sdlf*
                 Condition: !If
                   - RunInVpc
                   - StringEquals:
@@ -454,7 +454,7 @@ Resources:
                   - lambda:AddPermission
                   - lambda:RemovePermission
                 Resource:
-                  - !Sub arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:sdlf-*
+                  - !Sub arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:sdlf*
                   - !Sub arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:event-source-mapping:* # for lambda:TagResource
               - Effect: Allow
                 Action:
@@ -468,7 +468,7 @@ Resources:
                 Resource: "*"
                 Condition:
                   ArnLike:
-                    "lambda:FunctionArn": !Sub arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:sdlf-*
+                    "lambda:FunctionArn": !Sub arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:sdlf*
               - Effect: Allow
                 Action:
                   - logs:CreateLogGroup
@@ -480,7 +480,7 @@ Resources:
                   - logs:PutRetentionPolicy
                   - logs:TagResource
                 Resource:
-                  - !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/*/sdlf-*
+                  - !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/*/sdlf*
               - Effect: Allow
                 Action:
                   - logs:DescribeLogGroups # W11 exception
@@ -499,7 +499,7 @@ Resources:
                   - sns:Subscribe
                   - sns:Unsubscribe
                   - sns:TagResource
-                Resource: !Sub arn:${AWS::Partition}:sns:${AWS::Region}:${AWS::AccountId}:sdlf-*
+                Resource: !Sub arn:${AWS::Partition}:sns:${AWS::Region}:${AWS::AccountId}:sdlf*
               - Effect: Allow
                 Action:
                   - s3:CreateBucket
@@ -561,8 +561,8 @@ Resources:
                   - scheduler:TagResource
                   - scheduler:DeleteSchedule
                 Resource:
-                  - !Sub arn:${AWS::Partition}:scheduler:${AWS::Region}:${AWS::AccountId}:schedule-group/sdlf-*
-                  - !Sub arn:${AWS::Partition}:scheduler:${AWS::Region}:${AWS::AccountId}:schedule/sdlf-*
+                  - !Sub arn:${AWS::Partition}:scheduler:${AWS::Region}:${AWS::AccountId}:schedule-group/sdlf*
+                  - !Sub arn:${AWS::Partition}:scheduler:${AWS::Region}:${AWS::AccountId}:schedule/sdlf*
               - Effect: Allow
                 Action: sqs:ListQueues # W11 exception
                 Resource: "*"
@@ -581,7 +581,7 @@ Resources:
                   - sqs:SetQueueAttributes
                   - sqs:TagQueue
                   - sqs:UntagQueue
-                Resource: !Sub arn:${AWS::Partition}:sqs:${AWS::Region}:${AWS::AccountId}:sdlf-*
+                Resource: !Sub arn:${AWS::Partition}:sqs:${AWS::Region}:${AWS::AccountId}:sdlf*
               - Effect: Allow
                 Action:
                   - ssm:AddTagsToResource
@@ -596,7 +596,9 @@ Resources:
                   - ssm:ListTagsForResource
                   - ssm:PutParameter
                   - ssm:RemoveTagsFromResource
-                Resource: !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/SDLF/*
+                Resource:
+                  - !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/SDLF/*
+                  - !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/SDLF2/*
               - Effect: Allow
                 Action:
                   - lakeformation:DeregisterResource # W11 exception

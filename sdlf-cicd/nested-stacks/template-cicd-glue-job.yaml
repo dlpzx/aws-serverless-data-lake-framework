@@ -5,15 +5,15 @@ Parameters:
   pArtifactsBucket:
     Description: The artifacts bucket used by CodeBuild and CodePipeline
     Type: String
-    Default:  !Sub "{{resolve:ssm:/SDLF/${pDomain}/S3/ArtifactsBucket}"
+    Default:  "{{resolve:ssm:/SDLF2/S3/ArtifactsBucket}"
   pKMSKey:
     Description: The KMS key used by CodeBuild and CodePipeline
     Type: String
-    Default: !Sub "{{resolve:ssm:/SDLF/${pDomain}/KMS/CICDKeyId}"
+    Default: "{{resolve:ssm:/SDLF2/KMS/CICDKeyId}"
   pEnableVpc:
     Description: Deploy SDLF resources in a VPC
     Type: String
-    Default: !Sub "{{resolve:ssm:/SDLF/${pDomain}/VPC/Enabled}"
+    Default: "{{resolve:ssm:/SDLF/VPC/Enabled}"
 
 Conditions:
   RunInVpc: !Equals [!Ref pEnableVpc, true]
@@ -160,7 +160,7 @@ Resources:
                     AWS_SECRET_ACCESS_KEY=$(echo "$temp_role" | jq .Credentials.SecretAccessKey | xargs)
                     AWS_SESSION_TOKEN=$(echo "$temp_role" | jq .Credentials.SessionToken | xargs)
                     export AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN
-                    ARTIFACTS_BUCKET=$(aws ssm --endpoint-url "$SSM_ENDPOINT_URL" get-parameter --name "/SDLF/S3/ArtifactsBucket" --query "Parameter.Value" --output text) || exit 1
+                    ARTIFACTS_BUCKET=$(aws ssm --endpoint-url "$SSM_ENDPOINT_URL" get-parameter --name "/SDLF2/S3/ArtifactsBucket" --query "Parameter.Value" --output text) || exit 1
                     echo "Artifacts bucket to store Glue job scripts: $ARTIFACTS_BUCKET"
 
                     if [ -d "./transforms/" ]
@@ -261,7 +261,7 @@ Resources:
   rGlueJobPackageSsm:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: /SDLF/CodeBuild/PrepareGlueJobPackage
+      Name: /SDLF2/CodeBuild/PrepareGlueJobPackage
       Type: String
       Value: !Ref rGlueJobPackage
       Description: Name of the CodeBuild job that prepares Glue jobs

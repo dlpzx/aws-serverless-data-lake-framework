@@ -47,7 +47,7 @@ class Team(Construct):
             "pAthenaBucket",
             description="Athena bucket",
             type="String",
-            default=f"{{resolve:ssm:/SDLF/{p_domain.value_as_string}/S3/AthenaBucket:1}}",
+            default=f"{{resolve:ssm:/SDLF2/S3/AthenaBucket:1}}",
         )
         p_athenabucket.override_logical_id("pAthenaBucket")
 

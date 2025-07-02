@@ -139,7 +139,7 @@ Globals:
     Runtime: python3.12
     Handler: lambda_function.lambda_handler
     Layers:
-      - "{{resolve:ssm:/SDLF/Lambda/LatestDatalakeLibraryLayer}}"
+      - "{{resolve:ssm:/SDLF2/Lambda/LatestDatalakeLibraryLayer}}"
     Environment:
       Variables:
         S3_PREFIX: !If [FetchFromDatasetSsm, !Sub "{{resolve:ssm:/sdlf/dataset/rS3Prefix/${pDatasetDeploymentInstance}}}", !Ref pBucketPrefix]

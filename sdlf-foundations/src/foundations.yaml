@@ -220,7 +220,7 @@ Resources:
     UpdateReplacePolicy: Retain
     DeletionPolicy: RetainExceptOnCreate
     Properties:
-      AliasName: !Sub alias/sdlf-kms-key-${pDeploymentInstance}
+      AliasName: !Sub alias/sdlf2-kms-key-${pDeploymentInstance}
       TargetKeyId: !Ref rKMSKey
 
   rKMSKeySsm:
@@ -650,7 +650,7 @@ Resources:
             Condition:
               "ForAnyValue:StringLike":
                 "kms:ResourceAliases":
-                  - !Sub alias/sdlf-kms-key-${pDeploymentInstance}
+                  - !Sub alias/sdlf2-kms-key-${pDeploymentInstance}
                   - alias/sdlf-kms-data-key-*
       Roles:
         - !Ref rLakeFormationDataAccessRole

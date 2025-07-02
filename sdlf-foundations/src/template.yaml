@@ -128,7 +128,7 @@ Resources:
                   - logs:PutLogEvents
                   - logs:AssociateKmsKey
                 Resource:
-                  - !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/sdlf-glue-replication
+                  - !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/sdlf2-glue-replication
                   - !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/glue/*
                   - !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/sdlf-*
                   - !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:sdlf-*
@@ -152,8 +152,8 @@ Resources:
                   - ssm:GetParameter
                   - ssm:GetParameters
                 Resource:
-                  - !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/SDLF/${pDomain}/IAM/DataLakeAdminRoleArn
-                  - !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/SDLF/${pDomain}/Dynamo/DataSchemas
+                  - !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/SDLF2/IAM/DataLakeAdminRoleArn
+                  - !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/SDLF2/Dynamo/DataSchemas
 
   ######## LAKE FORMATION #########
   rDataLakeSettings:
@@ -311,14 +311,14 @@ Resources:
     UpdateReplacePolicy: Retain
     DeletionPolicy: RetainExceptOnCreate
     Properties:
-      AliasName: alias/sdlf-kms-key
+      AliasName: alias/sdlf2-kms-key
       TargetKeyId: !Ref rKMSKey
 
   ######## SSM #########
   rKMSKeySsm:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub /SDLF/${pDomain}/KMS/KeyArn
+      Name: !Sub /SDLF2/KMS/KeyArn
       Type: String
       Value: !GetAtt rKMSKey.Arn
       Description: ARN of the KMS key
@@ -326,7 +326,7 @@ Resources:
   rLakeFormationDataAccessRoleSsm:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub /SDLF/${pDomain}/IAM/LakeFormationDataAccessRoleArn
+      Name: !Sub /SDLF2/IAM/LakeFormationDataAccessRoleArn
       Type: String
       Value: !GetAtt rLakeFormationDataAccessRole.Arn
       Description: Lake Formation Data Access Role
@@ -334,7 +334,7 @@ Resources:
   rLakeFormationDataAccessRoleNameSsm:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub /SDLF/${pDomain}/IAM/LakeFormationDataAccessRole
+      Name: !Sub /SDLF2/IAM/LakeFormationDataAccessRole
       Type: String
       Value: !Ref rLakeFormationDataAccessRole
       Description: Lake Formation Data Access Role
@@ -446,7 +446,7 @@ Resources:
             Condition:
               "ForAnyValue:StringLike":
                 "kms:ResourceAliases":
-                  - alias/sdlf-kms-key
+                  - alias/sdlf2-kms-key
                   - alias/sdlf-*-kms-data-key
       Roles:
         - !Ref rLakeFormationDataAccessRole
@@ -722,7 +722,7 @@ Resources:
     DeletionPolicy: Delete
     UpdateReplacePolicy: Delete
     Properties:
-      QueueName: sdlf-catalog-queue
+      QueueName: sdlf2-catalog-queue
       RedrivePolicy:
         deadLetterTargetArn: !GetAtt rDeadLetterQueueCatalog.Arn
         maxReceiveCount: 1
@@ -735,7 +735,7 @@ Resources:
     DeletionPolicy: Delete
     UpdateReplacePolicy: Delete
     Properties:
-      QueueName: sdlf-catalog-dlq
+      QueueName: sdlf2-catalog-dlq
       MessageRetentionPeriod: 1209600
       VisibilityTimeout: 60
       KmsMasterKeyId: !GetAtt rKMSKey.Arn
@@ -795,7 +795,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: ./lambda/catalog/src
-      FunctionName: sdlf-catalog
+      FunctionName: sdlf2-catalog
       Environment:
         Variables:
           ENV: !Ref pEnvironment
@@ -809,7 +809,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: ./lambda/catalog-redrive/src
-      FunctionName: sdlf-catalog-redrive
+      FunctionName: sdlf2-catalog-redrive
       Environment:
         Variables:
           QUEUE: !GetAtt rQueueCatalog.QueueName
@@ -853,7 +853,7 @@ Resources:
                   - logs:CreateLogGroup
                   - logs:CreateLogStream
                   - logs:PutLogEvents
-                Resource: !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/sdlf-catalog*
+                Resource: !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/sdlf2-catalog*
               - Effect: Allow
                 Action:
                   - sqs:DeleteMessage
@@ -894,48 +894,48 @@ Resources:
                 Action:
                   - ssm:GetParameter
                   - ssm:GetParameters
-                Resource: !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/SDLF/${pDomain}/EventBridge/*
+                Resource: !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/SDLF/EventBridge/*
 
   ####### SSM #######
   rS3ArtifactBucketSsm:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub /SDLF/${pDomain}/S3/ArtifactsBucket
+      Name: !Sub /SDLF2/S3/ArtifactsBucket
       Type: String
       Value: !Ref rArtifactsBucket
       Description: Name of the Artifacts S3 bucket
   rS3CentralBucketSsm: # kept for backward compatibility
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub /SDLF/${pDomain}/S3/CentralBucket
+      Name: !Sub /SDLF2/S3/CentralBucket
       Type: String
       Value: !Ref rRawBucket
-      Description: Name of the Central S3 bucket (deprecrated, use /SDLF/S3/RawBucket instead)
+      Description: Name of the Central S3 bucket (deprecrated, use /SDLF2/S3/RawBucket instead)
   rS3RawBucketSsm:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub /SDLF/${pDomain}/S3/RawBucket
+      Name: !Sub /SDLF2/S3/RawBucket
       Type: String
       Value: !Ref rRawBucket
       Description: Name of the Raw S3 bucket
   rS3StageBucketSsm:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub /SDLF/${pDomain}/S3/StageBucket
+      Name: !Sub /SDLF2/S3/StageBucket
       Type: String
       Value: !Ref rStageBucket
       Description: Name of the Stage S3 bucket
   rS3AnalyticsBucketSsm:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub /SDLF/${pDomain}/S3/AnalyticsBucket
+      Name: !Sub /SDLF2/S3/AnalyticsBucket
       Type: String
       Value: !Ref rAnalyticsBucket
       Description: Name of the Analytics S3 bucket
   rS3AthenaBucketSsm:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub /SDLF/${pDomain}/S3/AthenaBucket
+      Name: !Sub /SDLF2/S3/AthenaBucket
       Type: String
       Value: !Ref rAthenaBucket
       Description: Name of the Athena results S3 bucket
@@ -1445,7 +1445,7 @@ Resources:
 #  rDynamoObjectMetadataSsm:
 #    Type: AWS::SSM::Parameter
 #    Properties:
-#      Name: !Sub /SDLF/${pDomain}/Dynamo/ObjectCatalog
+#      Name: !Sub /SDLF2/Dynamo/ObjectCatalog
 #      Type: String
 #      Value: !Ref rDynamoOctagonObjectMetadata
 #      Description: Name of the DynamoDB used to store metadata
@@ -1453,7 +1453,7 @@ Resources:
 #    Type: AWS::SSM::Parameter
 #    Condition: UseLegacyTables
 #    Properties:
-#      Name: !Sub /SDLF/${pDomain}/Dynamo/TransformMapping
+#      Name: !Sub /SDLF2/Dynamo/TransformMapping
 #      Type: String
 #      Value: !Ref rDynamoOctagonDatasets
 #      Description: Name of the DynamoDB used to store mappings to transformation (same as /SDLF/Dynamo/Datasets)
@@ -1461,7 +1461,7 @@ Resources:
 #    Type: AWS::SSM::Parameter
 #    Condition: UseLegacyTables
 #    Properties:
-#      Name: !Sub /SDLF/${pDomain}/Dynamo/Datasets
+#      Name: !Sub /SDLF2/Dynamo/Datasets
 #      Type: String
 #      Value: !Ref rDynamoOctagonDatasets
 #      Description: Name of the DynamoDB used to store datasets metadata
@@ -1469,7 +1469,7 @@ Resources:
 #    Type: AWS::SSM::Parameter
 #    Condition: UseLegacyTables
 #    Properties:
-#      Name: !Sub /SDLF/${pDomain}/Dynamo/Pipelines
+#      Name: !Sub /SDLF2/Dynamo/Pipelines
 #      Type: String
 #      Value: !Ref rDynamoOctagonPipelines
 #      Description: Name of the DynamoDB used to store pipelines metadata
@@ -1477,7 +1477,7 @@ Resources:
 #    Type: AWS::SSM::Parameter
 #    Condition: UseLegacyTables
 #    Properties:
-#      Name: !Sub /SDLF/${pDomain}/Dynamo/TeamMetadata
+#      Name: !Sub /SDLF2/Dynamo/TeamMetadata
 #      Type: String
 #      Value: !Ref rDynamoOctagonTeams
 #      Description: Name of the DynamoDB used to store teams metadata
@@ -1485,7 +1485,7 @@ Resources:
 #    Type: AWS::SSM::Parameter
 #    Condition: UseLegacyTables
 #    Properties:
-#      Name: !Sub /SDLF/${pDomain}/Dynamo/DataSchemas
+#      Name: !Sub /SDLF2/Dynamo/DataSchemas
 #      Type: String
 #      Value: !Ref rDynamoOctagonSchemas
 #      Description: Name of the DynamoDB used to store data schemas
@@ -1493,7 +1493,7 @@ Resources:
 #    Type: AWS::SSM::Parameter
 #    Condition: UseLegacyTables
 #    Properties:
-#      Name: !Sub /SDLF/${pDomain}/Dynamo/Manifests
+#      Name: !Sub /SDLF2/Dynamo/Manifests
 #      Type: String
 #      Value: !Ref rDynamoOctagonManifests
 #      Description: Name of the DynamoDB used to store manifest process metadata
@@ -1504,7 +1504,7 @@ Resources:
     Type: AWS::Serverless::Function
     Condition: UseLegacyTables
     Properties:
-      FunctionName: sdlf-glue-replication
+      FunctionName: sdlf2-glue-replication
       Description: Replicates Glue Catalog Metadata and Data Quality to Octagon Schemas Table
       CodeUri: ./lambda/replicate/src
       Environment:
@@ -1555,7 +1555,7 @@ Resources:
   rOrganizationSsm:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub /SDLF/${pDomain}/Misc/pOrg
+      Name: !Sub /SDLF2/Misc/pOrg
       Type: String
       Value: !Ref pOrg
       Description: Name of the Organization owning the datalake
@@ -1563,7 +1563,7 @@ Resources:
   rDomainSsm:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub /SDLF/${pDomain}/Misc/pDomain
+      Name: !Sub /SDLF2/Misc/pDomain
       Type: String
       Value: !Ref pDomain
       Description: Data domain name
@@ -1571,7 +1571,7 @@ Resources:
   rEnvironmentSsm:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub /SDLF/${pDomain}/Misc/pEnv
+      Name: !Sub /SDLF2/Misc/pEnv
       Type: String
       Value: !Ref pEnvironment
       Description: Environment name
@@ -1580,7 +1580,7 @@ Resources:
     Type: AWS::SSM::Parameter
     Condition: UseLegacyTables
     Properties:
-      Name: !Sub /SDLF/${pDomain}/IAM/DataLakeAdminRoleArn
+      Name: !Sub /SDLF2/IAM/DataLakeAdminRoleArn
       Type: String
       Value: !GetAtt rDataLakeAdminRole.Arn
       Description: Lake Formation Data Lake Admin Role
@@ -1588,7 +1588,7 @@ Resources:
   rS3AccessLogsBucketSsm:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub /SDLF/${pDomain}/S3/AccessLogsBucket
+      Name: !Sub /SDLF2/S3/AccessLogsBucket
       Type: String
       Value: !Ref rS3AccessLogsBucket
       Description: S3 Access Logs Bucket

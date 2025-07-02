@@ -20,7 +20,7 @@ rMainB:
     Type: awslabs::sdlf::stageB::MODULE
     Properties:
         pPipelineReference: !Ref pPipelineReference
-        pDatasetBucket: "{{resolve:ssm:/SDLF/{pDomain}/S3/StageBucket}}"
+        pDatasetBucket: "{{resolve:ssm:/SDLF2/S3/StageBucket}}"
         pStageName: B
         pPipeline: main
         pTeamName: iot

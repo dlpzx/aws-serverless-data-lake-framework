@@ -35,7 +35,7 @@ class StageGlue(Construct):
         )
         p_domain.override_logical_id("pDomain")
         p_rawbucket = CfnParameter(
-            self, "pRawBucket", description="Raw bucket", type="String", default=f"{{resolve:ssm:/SDLF/{p_domain.value_as_string}/S3/RawBucket:1}}"
+            self, "pRawBucket", description="Raw bucket", type="String", default=f"{{resolve:ssm:/SDLF2/S3/RawBucket:1}}"
         )
         p_rawbucket.override_logical_id("pRawBucket")
         p_stagebucket = CfnParameter(
@@ -43,7 +43,7 @@ class StageGlue(Construct):
             "pStageBucket",
             description="Stage Bucket",
             type="String",
-            default=f"{{resolve:ssm:/SDLF/{p_domain.value_as_string}/S3/StageBucket:1}}",
+            default=f"{{resolve:ssm:/SDLF2/S3/StageBucket:1}}",
         )
         p_stagebucket.override_logical_id("pStageBucket")
         p_enabletracing = CfnParameter(

@@ -143,7 +143,7 @@ class StageLambda(Construct):
         datalakelibrary_layer = _lambda.LayerVersion.from_layer_version_arn(
             self,
             "rDatalakeLibraryLayer",
-            ssm.StringParameter.value_from_lookup(self, "/SDLF/Lambda/LatestDatalakeLibraryLayer"),
+            ssm.StringParameter.value_from_lookup(self, "/SDLF2/Lambda/LatestDatalakeLibraryLayer"),
         )
 
         transformstep_role_policy = iam.Policy(
