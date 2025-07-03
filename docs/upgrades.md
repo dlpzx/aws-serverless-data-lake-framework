@@ -2,6 +2,142 @@
 
 [GitHub release notes](https://github.com/aws-solutions-library-samples/data-lakes-on-aws/releases) are the primary source of information regarding new version changes.
 
+## Version Compatibility
+
+This documentation covers SDLF v2.10.0+ features. For earlier versions, please refer to the appropriate release documentation.
+
+**Latest Features (v2.10.0+)**:
+- Custom Octagon Table Suffix (`pCustomOctagonSuffix` parameter)
+- Enhanced deploy.sh command with `-c` custom identifier support
+- Improved IAM policy compatibility for table naming
+
+## Deploy.sh Command Reference
+
+### Latest Command Syntax (v2.10.0+)
+
+#### crossaccount-cicd-roles
+Deploys crossaccount IAM roles necessary for DevOps CICD pipelines.
+
+```bash
+./deploy.sh crossaccount-cicd-roles -d <devops-account-id> -p <domain-account-profile> -r <region> [OPTIONS]
+```
+
+**Required Parameters**:
+- `-d` -- AWS account id of the Shared DevOps account
+- `-p` -- Name of the AWS profile to use where a SDLF data domain will reside (default: 'default')
+- `-r` -- AWS Region to deploy to (default: profile's default region)
+
+**Optional Parameters**:
+- `-f` -- Enable optional features: `monitoring`, `vpc`. Multiple `-f` options can be given
+- `-c` -- Custom identifier used in conflicting foundational resource names (default: '')
+
+**Examples**:
+```bash
+# Basic deployment
+./deploy.sh crossaccount-cicd-roles -d 123456789012 -p domain-profile -r us-east-1
+
+# With optional features
+./deploy.sh crossaccount-cicd-roles -d 123456789012 -p domain-profile -r us-east-1 -f monitoring -f vpc
+
+# With custom identifier to avoid conflicts
+./deploy.sh crossaccount-cicd-roles -d 123456789012 -p domain-profile -r us-east-1 -c myorg
+```
+
+#### devops-account
+Deploys SDLF DevOps/CICD/Tooling resources.
+
+```bash
+./deploy.sh devops-account -d <domain-account-ids> -p <devops-account-profile> -r <region> [OPTIONS]
+```
+
+**Required Parameters**:
+- `-d` -- Comma-delimited list of AWS account ids where SDLF data domains are deployed
+- `-p` -- Name of the AWS profile to use where SDLF DevOps/CICD/Tooling will reside (default: 'default')
+- `-r` -- AWS Region to deploy to (default: profile's default region)
+
+**Optional Parameters**:
+- `-f` -- Enable optional features: `gluejobdeployer`, `lambdalayerbuilder`, `monitoring`, `vpc`, `github`, `gitlab`. Multiple `-f` options can be given
+- `-c` -- Custom identifier used in conflicting foundational resource names (default: 'sdlf')
+
+**Examples**:
+```bash
+# Basic deployment
+./deploy.sh devops-account -d 111111111111,222222222222 -p devops-profile -r us-east-1
+
+# With optional features
+./deploy.sh devops-account -d 111111111111,222222222222 -p devops-profile -r us-east-1 -f monitoring -f gluejobdeployer -f github
+
+# With custom identifier
+./deploy.sh devops-account -d 111111111111,222222222222 -p devops-profile -r us-east-1 -c myorg
+```
+
+#### Available Optional Features
+
+| Feature | Command | Description |
+|---------|---------|-------------|
+| **monitoring** | `-f monitoring` | Enables sdlf-monitoring module for comprehensive observability |
+| **vpc** | `-f vpc` | Enables VPC support for Lambda functions and other resources |
+| **gluejobdeployer** | `-f gluejobdeployer` | Enables Glue Job deployment capabilities |
+| **lambdalayerbuilder** | `-f lambdalayerbuilder` | Enables Lambda Layer building capabilities |
+| **github** | `-f github` | Uses GitHub as the Git provider instead of CodeCommit |
+| **gitlab** | `-f gitlab` | Uses GitLab as the Git provider instead of CodeCommit |
+
+**Note**: Only one Git provider can be selected at a time (CodeCommit is default).
+
+## New Features and Configuration Options
+
+### Custom Octagon Table Suffix (v2.10.0+)
+
+SDLF v2.10.0 introduces the ability to customize the suffix of Octagon DynamoDB tables to avoid naming conflicts when deploying multiple SDLF instances.
+
+**New Parameter**: `pCustomOctagonSuffix`
+- **Description**: Custom suffix for Octagon DynamoDB tables
+- **Type**: String
+- **Default**: "" (empty string)
+- **Available in**: `sdlf-foundations` and `sdlf-team` templates
+
+**Table Naming Convention Changes**:
+- **Previous**: `octagon-{TableType}-${pEnvironment}-${pDomain}`
+- **New**: `octagon-{TableType}-${pEnvironment}${pCustomOctagonSuffix}`
+
+**Examples**:
+- **Default behavior** (empty suffix): `octagon-ObjectMetadata-dev`
+- **With custom suffix**: `octagon-ObjectMetadata-dev-mydomain` (when `pCustomOctagonSuffix` = "-mydomain")
+
+**Affected Tables**:
+- octagon-ObjectMetadata
+- octagon-Datasets
+- octagon-Artifacts
+- octagon-Metrics
+- octagon-Configuration
+- octagon-Teams
+- octagon-Pipelines
+- octagon-Events
+- octagon-PipelineExecutionHistory
+- octagon-DataSchemas
+- octagon-Manifests
+
+**Backward Compatibility**: This change is fully backward compatible. When the parameter is left empty (default), table names remain exactly as they were before.
+
+**IAM Policy Compatibility**: Most existing IAM policies use wildcard patterns (`octagon-*`) and will continue to work without modification. Only specific table references in the team template have been updated to use the new parameter.
+
+### Custom Identifier for Resource Names
+
+The `-c` parameter in `deploy.sh` allows you to specify a custom identifier for foundational resource names to avoid conflicts when deploying multiple SDLF instances in the same account or region.
+
+**Usage**:
+- **crossaccount-cicd-roles**: `-c <custom-identifier>` (default: '')
+- **devops-account**: `-c <custom-identifier>` (default: 'sdlf')
+
+**Examples**:
+```bash
+# Deploy with custom identifier for organization "myorg"
+./deploy.sh crossaccount-cicd-roles -d <devops-account-id> -p <profile> -r <region> -c myorg
+./deploy.sh devops-account -d <domain-accounts> -p <profile> -r <region> -c myorg
+```
+
+This will create repositories and resources with names like `myorg-foundations`, `myorg-team`, etc., instead of the default `sdlf-foundations`, `sdlf-team`.
+
 # Upgrade from SDLF 1.x to SDLF 2.x
 
 In the SDLF [2.0.0 release notes](https://github.com/aws-solutions-library-samples/data-lakes-on-aws/releases/tag/2.0.0) you can find the list of new features in SDLF v2.
@@ -47,13 +183,20 @@ Summary of SDLF v2 deployment steps as appear in the [workshop SDLF 2.0 section]
 2. **Deploy cross-account CICD roles** with `./deploy.sh crossaccount-cicd-roles` subcommand
    - Run for each data domain account
    - Deploys cross-account IAM roles for DevOps pipelines
+   - Command: `./deploy.sh crossaccount-cicd-roles -d <devops-account-id> -p <domain-account-profile> -r <region>`
+   - Optional features: `-f monitoring` `-f vpc`
+   - Custom identifier: `-c <custom-identifier>` (default: '')
 3. **Deploy DevOps account resources** with `./deploy.sh devops-account` subcommand
-   - Creates `sdlf-main` repository and CICD infrastructure
+   - Creates SDLF main repository and CICD infrastructure
+   - Command: `./deploy.sh devops-account -d <domain-account-ids> -p <devops-account-profile> -r <region>`
+   - Optional features: `-f gluejobdeployer` `-f lambdalayerbuilder` `-f monitoring` `-f vpc` `-f github` `-f gitlab`
+   - Custom identifier: `-c <custom-identifier>` (default: 'sdlf')
 4. **Deploy foundational and team infrastructure**
-   - Clone `sdlf-main` repository from Git provider
+   - Clone SDLF main repository from Git provider
    - Configure foundations:
      - Create `foundations-{domain}-{env}.yaml` files using CloudFormation modules
      - Define domain-specific infrastructure using `awslabs::sdlf::foundations::MODULE`
+     - Configure `pCustomOctagonSuffix` parameter if needed to avoid table name conflicts
    - Configure teams:
      - Create `team-{domain}-{team}-{env}.yaml` files using CloudFormation modules
      - Define team-specific resources using `awslabs::sdlf::team::MODULE`
@@ -222,10 +365,10 @@ Prepare rollback procedures in case of migration issues:
 
 Deploy SDLF v2 alongside existing v1 infrastructure (blue/green deployment). To deploy V2 follow the steps in the [workshop](https://catalog.us-east-1.prod.workshops.aws/workshops/501cb14c-91b3-455c-a2a9-d0a21ce68114/en-US/20-production).
 
-1. Deploy v2 DevOps Infrastructure. IMPORTANT: if you are deploying SDLF v2 in the same accounts as SDLF v1, and you are using the same git provider, the repositories names will run into conflicts. In that scenario, you will need to use the `-g` parameter in the commands using `./deploy.sh`. Make sure you use any string different from `sdlf`. In the example below, the repositories for v2 will be called sdlfv2-X. 
-   - `./deploy.sh crossaccount-cicd-roles -d <devops-account-aws-account-id> -p <child-account-aws-profile> -r <aws-region> -f sdlfv2`
-   - `./deploy.sh devops-account -d <child-account-1-aws-account-id>,<child-account-2-aws-account-id> -p <devops-account-aws-profile> -r <aws-region> -g sdlfv2`
-2. Deploy v2 foundations and team resources using the `<sdlfv2>-main` repository. sdlfv2 represents the value you provided in the `-g` parameter in the previous step.
+1. Deploy v2 DevOps Infrastructure. IMPORTANT: if you are deploying SDLF v2 in the same accounts as SDLF v1, and you are using the same git provider, the repositories names will run into conflicts. In that scenario, you will need to use the `-c` parameter in the commands using `./deploy.sh`. Make sure you use any string different from `sdlf`. In the example below, the repositories for v2 will be called sdlfv2-X. 
+   - `./deploy.sh crossaccount-cicd-roles -d <devops-account-aws-account-id> -p <child-account-aws-profile> -r <aws-region> -c sdlfv2`
+   - `./deploy.sh devops-account -d <child-account-1-aws-account-id>,<child-account-2-aws-account-id> -p <devops-account-aws-profile> -r <aws-region> -c sdlfv2`
+2. Deploy v2 foundations and team resources using the `<sdlfv2>-main` repository. sdlfv2 represents the value you provided in the `-c` parameter in the previous step.
    - Decide domains in the data mesh - Domains are a NEW concept of SDLF v2 - Choose any domain name except `datalake`
    - Deploy foundations and teams. If you want to avoid conflicting-names issues chose a different team name as in v1. This will ensure pipelines and datasets can be created with the same name without conflicts.
 
