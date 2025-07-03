@@ -99,6 +99,10 @@ Parameters:
     Description: VPC Subnet Ids
     Type: String
     Default: ""
+  pCustomOctagonSuffix:
+    Description: Custom suffix for Octagon DynamoDB tables
+    Type: String
+    Default: "{{resolve:ssm:/SDLF/CustomIdentifier}}"
 
 Conditions:
   CicdRoleProvided: !Not [!Equals [!Ref pCicdRole, ""]]
@@ -764,8 +768,8 @@ Resources:
                   - dynamodb:DeleteItem
                   - dynamodb:UpdateItem
                 Resource:
-                  - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/octagon-Pipelines-${pEnvironment}
-                  - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/octagon-Datasets-${pEnvironment}
+                  - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/octagon-Pipelines-${pEnvironment}*
+                  - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/octagon-Datasets-${pEnvironment}*
               - Effect: Allow
                 Action:
                   - logs:CreateLogGroup
@@ -810,6 +814,7 @@ Resources:
         Variables:
           TEAM_NAME: !Ref pTeamName
           ENVIRONMENT: !Ref pEnvironment
+          CUSTOM_OCTAGON_SUFFIX: !Ref pCustomOctagonSuffix
       CodeUri: ./lambda/datasets-dynamodb/src
 
   rPermissionForDatasetsEventsToInvokeLambda:
@@ -882,8 +887,8 @@ Resources:
                   - dynamodb:DeleteItem
                   - dynamodb:UpdateItem
                 Resource:
-                  - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/octagon-Pipelines-${pEnvironment}
-                  - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/octagon-Datasets-${pEnvironment}
+                  - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/octagon-Pipelines-${pEnvironment}*
+                  - !Sub arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/octagon-Datasets-${pEnvironment}*
               - Effect: Allow
                 Action:
                   - logs:CreateLogGroup
@@ -928,6 +933,7 @@ Resources:
         Variables:
           TEAM_NAME: !Ref pTeamName
           ENVIRONMENT: !Ref pEnvironment
+          CUSTOM_OCTAGON_SUFFIX: !Ref pCustomOctagonSuffix
       CodeUri: ./lambda/pipelines-dynamodb/src
 
   rPermissionForPipelinesEventsToInvokeLambda:

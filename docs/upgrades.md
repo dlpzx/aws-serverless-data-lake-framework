@@ -209,13 +209,15 @@ Before migrating from SDLF v1 to v2, assess your current implementation:
 Prepare rollback procedures in case of migration issues:
 
 1. **Configuration Rollback**
-   - Keep v1 configurations backed up*
+   - Keep v1 configurations backed up:
+       - we suggest taking a snapshot of the octagon DynamoDB tables
+       - ensuring that parameter files from v1 repository are also backed up.
    - Document rollback procedures
    - Test rollback in non-production environment
 
 2. **Data Rollback**
    - Maintain v1 data infrastructure (S3 Buckets, KMS keys) during migration period
-   - Plan for data synchronization if needed
+   - Plan for data synchronization if needed 
    - Document data recovery procedures
 
 ### Recommended migration approach
@@ -223,8 +225,8 @@ Prepare rollback procedures in case of migration issues:
 Deploy SDLF v2 alongside existing v1 infrastructure (blue/green deployment). To deploy V2 follow the steps in the [workshop](https://catalog.us-east-1.prod.workshops.aws/workshops/501cb14c-91b3-455c-a2a9-d0a21ce68114/en-US/20-production).
 
 1. Deploy v2 DevOps Infrastructure. IMPORTANT: if you are deploying SDLF v2 in the same accounts as SDLF v1, and you are using the same git provider, the repositories names will run into conflicts. In that scenario, you will need to use the `-g` parameter in the commands using `./deploy.sh`. Make sure you use any string different from `sdlf`. In the example below, the repositories for v2 will be called sdlfv2-X. 
-   - `./deploy.sh crossaccount-cicd-roles -d <devops-account-aws-account-id> -p <child-account-aws-profile> -r <aws-region> -f sdlfv2`
-   - `./deploy.sh devops-account -d <child-account-1-aws-account-id>,<child-account-2-aws-account-id> -p <devops-account-aws-profile> -r <aws-region> -g sdlfv2`
+   - `./deploy.sh crossaccount-cicd-roles -d <devops-account-aws-account-id> -p <child-account-aws-profile> -r <aws-region> -c v2`
+   - `./deploy.sh devops-account -d <child-account-1-aws-account-id>,<child-account-2-aws-account-id> -p <devops-account-aws-profile> -r <aws-region> -c v2`
 2. Deploy v2 foundations and team resources using the `<sdlfv2>-main` repository. sdlfv2 represents the value you provided in the `-g` parameter in the previous step.
    - Decide domains in the data mesh - Domains are a NEW concept of SDLF v2 - Choose any domain name except `datalake`
    - Deploy foundations and teams. If you want to avoid conflicting-names issues chose a different team name as in v1. This will ensure pipelines and datasets can be created with the same name without conflicts.
@@ -247,16 +249,18 @@ Code migration for each pipeline and dataset:
    - Connect the dataset with downstream applications and ensure it is accessed as previously
 
 Data migration:
-6. v1-processed data migration: Once all datasets and pipelines are re-created in v2, new data can flow and be processed by the v2 pipelines into the v2 datasets.
+6. Plan and schedule upstream data ingestion downtime. When performing the data migration step 7, new data should not be ingested in the raw buckets.
+7. v1-processed data migration: Once all datasets and pipelines are re-created in v2, new data can flow and be processed by the v2 pipelines into the v2 datasets.
 But what happens with the data that was processed using v1? There is not a single solution on how to handle the data migration for v1-processed data. It will depend on your requirements.
    - scenario 1: it is not required. v2 will only contain new datasets, v1-datasets will continue to be accessible.
    - scenario 2: it is required. v1-datasets will keep receiving new data, and we want to process it with v2 pipelines into new v2 datasets
-     - option 2.1 Sync curated data: sync data from the analytics bucket in v1 to the analytics bucket in v2 - 
-     - option 2.2 Sync raw data and re-process with v2: sync data from the raw bucket in v1 to the raw bucket in v2
-     - option 2.3 Keep 2 datasets:
+     - option 2.1 Sync curated data: copy data from the analytics bucket in v1 to the analytics bucket in v2. Simple approach, no re-processing of the data.
+     - option 2.2 Sync raw data and re-process with v2: copy data from the raw bucket in v1 to the raw bucket in v2. v2 pipelines will process it and will create the analytics datasets. Because data will be re-processed, be mindful of how much data is copied between buckets at once. 
+Option 2.1 has the advantage of being simple and not incurring additional processing costs. Option 2.2 ensures that all data is processed in the same way and it is a good way of testing the code of the new pipelines.
 
-Blue/Green swap:
-7. Update upstream data ingestion
+
+Once data and code are migrated, we perform the Blue/Green swap:
+7. Update upstream data ingestion (end downtime for ingestion)
    - Redirect new data ingestion to v2 raw S3 Bucket
    - Maintain v1 for rollbacks and for availability of downstream applications
 8. Update downstream data consumption
@@ -264,8 +268,9 @@ Blue/Green swap:
    - Test that v2 datasets are accessible from your data applications
 9. Remove v1 upstream data ingestion. 
    - From now onwards data will be process solely with v2
+
 10. Plan and decommission v1
-   - If Code is fully migrated to v2
-   - And Data is fully migrated to v2
-   - And downstream applications only read from v2 datasets
-   - Then we can plan the decommission of sdlf v1 - since everything is infrastructure as code you will need to delete the old CloudFormation stacks from the newest to the oldest to avoid orphan resources.
+    - If Code is fully migrated to v2
+    - And Data is fully migrated to v2 - if you opted for data migration option 2.1 ensure raw data is not deleted in the v1 decommissioning.
+    - And downstream applications only read from v2 datasets
+    - Then we plan the decommission of sdlf v1 - since everything is infrastructure as code you will need to delete the old CloudFormation stacks from the newest to the oldest to avoid orphan resources.

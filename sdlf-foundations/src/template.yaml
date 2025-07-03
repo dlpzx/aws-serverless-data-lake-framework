@@ -22,6 +22,10 @@ Parameters:
     Description: S3 Bucket Prefix if different from default. Must be a valid S3 Bucket name
     Type: String
     Default: sdlf
+  pCustomSuffix:
+    Description: Custom suffix for Octagon DynamoDB tables
+    Type: String
+    Default: "{{resolve:ssm:/SDLF/CustomIdentifier}}"
   pEnvironment:
     Description: Environment name
     Type: String
@@ -128,7 +132,7 @@ Resources:
                   - logs:PutLogEvents
                   - logs:AssociateKmsKey
                 Resource:
-                  - !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/sdlf2-glue-replication
+                  - !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/sdlf-glue-replication*
                   - !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/glue/*
                   - !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/codebuild/sdlf-*
                   - !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:sdlf-*
@@ -311,14 +315,14 @@ Resources:
     UpdateReplacePolicy: Retain
     DeletionPolicy: RetainExceptOnCreate
     Properties:
-      AliasName: alias/sdlf2-kms-key
+      AliasName: !Sub alias/sdlf-kms-key${pCustomSuffix}
       TargetKeyId: !Ref rKMSKey
 
   ######## SSM #########
   rKMSKeySsm:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub /SDLF2/KMS/KeyArn
+      Name: /SDLF2/KMS/KeyArn
       Type: String
       Value: !GetAtt rKMSKey.Arn
       Description: ARN of the KMS key
@@ -326,7 +330,7 @@ Resources:
   rLakeFormationDataAccessRoleSsm:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub /SDLF2/IAM/LakeFormationDataAccessRoleArn
+      Name: /SDLF2/IAM/LakeFormationDataAccessRoleArn
       Type: String
       Value: !GetAtt rLakeFormationDataAccessRole.Arn
       Description: Lake Formation Data Access Role
@@ -334,7 +338,7 @@ Resources:
   rLakeFormationDataAccessRoleNameSsm:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub /SDLF2/IAM/LakeFormationDataAccessRole
+      Name: /SDLF2/IAM/LakeFormationDataAccessRole
       Type: String
       Value: !Ref rLakeFormationDataAccessRole
       Description: Lake Formation Data Access Role
@@ -446,7 +450,7 @@ Resources:
             Condition:
               "ForAnyValue:StringLike":
                 "kms:ResourceAliases":
-                  - alias/sdlf2-kms-key
+                  - alias/sdlf-kms-key*
                   - alias/sdlf-*-kms-data-key
       Roles:
         - !Ref rLakeFormationDataAccessRole
@@ -722,7 +726,7 @@ Resources:
     DeletionPolicy: Delete
     UpdateReplacePolicy: Delete
     Properties:
-      QueueName: sdlf2-catalog-queue
+      QueueName: !Sub sdlf-catalog-queue${pCustomSuffix}
       RedrivePolicy:
         deadLetterTargetArn: !GetAtt rDeadLetterQueueCatalog.Arn
         maxReceiveCount: 1
@@ -735,7 +739,7 @@ Resources:
     DeletionPolicy: Delete
     UpdateReplacePolicy: Delete
     Properties:
-      QueueName: sdlf2-catalog-dlq
+      QueueName: !Sub sdlf-catalog-dlq${pCustomSuffix}
       MessageRetentionPeriod: 1209600
       VisibilityTimeout: 60
       KmsMasterKeyId: !GetAtt rKMSKey.Arn
@@ -795,7 +799,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: ./lambda/catalog/src
-      FunctionName: sdlf2-catalog
+      FunctionName: !Sub sdlf-catalog${pCustomSuffix}
       Environment:
         Variables:
           ENV: !Ref pEnvironment
@@ -809,7 +813,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: ./lambda/catalog-redrive/src
-      FunctionName: sdlf2-catalog-redrive
+      FunctionName: !Sub sdlf-catalog-redrive${pCustomSuffix}
       Environment:
         Variables:
           QUEUE: !GetAtt rQueueCatalog.QueueName
@@ -853,7 +857,7 @@ Resources:
                   - logs:CreateLogGroup
                   - logs:CreateLogStream
                   - logs:PutLogEvents
-                Resource: !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/sdlf2-catalog*
+                Resource: !Sub arn:${AWS::Partition}:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/sdlf-catalog*
               - Effect: Allow
                 Action:
                   - sqs:DeleteMessage
@@ -900,603 +904,603 @@ Resources:
   rS3ArtifactBucketSsm:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub /SDLF2/S3/ArtifactsBucket
+      Name: /SDLF2/S3/ArtifactsBucket
       Type: String
       Value: !Ref rArtifactsBucket
       Description: Name of the Artifacts S3 bucket
   rS3CentralBucketSsm: # kept for backward compatibility
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub /SDLF2/S3/CentralBucket
+      Name: /SDLF2/S3/CentralBucket
       Type: String
       Value: !Ref rRawBucket
       Description: Name of the Central S3 bucket (deprecrated, use /SDLF2/S3/RawBucket instead)
   rS3RawBucketSsm:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub /SDLF2/S3/RawBucket
+      Name: /SDLF2/S3/RawBucket
       Type: String
       Value: !Ref rRawBucket
       Description: Name of the Raw S3 bucket
   rS3StageBucketSsm:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub /SDLF2/S3/StageBucket
+      Name: /SDLF2/S3/StageBucket
       Type: String
       Value: !Ref rStageBucket
       Description: Name of the Stage S3 bucket
   rS3AnalyticsBucketSsm:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub /SDLF2/S3/AnalyticsBucket
+      Name: /SDLF2/S3/AnalyticsBucket
       Type: String
       Value: !Ref rAnalyticsBucket
       Description: Name of the Analytics S3 bucket
   rS3AthenaBucketSsm:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub /SDLF2/S3/AthenaBucket
+      Name: /SDLF2/S3/AthenaBucket
       Type: String
       Value: !Ref rAthenaBucket
       Description: Name of the Athena results S3 bucket
 
-  ######## DYNAMODB ######### TODO
-#  rDynamoOctagonObjectMetadata:
-#    Type: AWS::DynamoDB::Table
-#    Metadata:
-#      cfn_nag:
-#        rules_to_suppress:
-#          - id: W28
-#            reason: DynamoDB tables require specific names to be compatible with Octagon
-#    Properties:
-#      AttributeDefinitions:
-#        - AttributeName: id
-#          AttributeType: S
-#      KeySchema:
-#        - AttributeName: id
-#          KeyType: HASH
-#      BillingMode: PAY_PER_REQUEST
-#      TableName: !Sub octagon-ObjectMetadata-${pEnvironment}-${pDomain}
-#      StreamSpecification:
-#        StreamViewType: NEW_AND_OLD_IMAGES
-#      SSESpecification:
-#        SSEEnabled: True
-#        SSEType: KMS
-#        KMSMasterKeyId: !GetAtt rKMSKey.Arn
-#      PointInTimeRecoverySpecification:
-#        PointInTimeRecoveryEnabled: True
-#    UpdateReplacePolicy: Retain
-#    DeletionPolicy: Delete
-#
-#  rDynamoOctagonDatasets:
-#    Type: AWS::DynamoDB::Table
-#    Condition: UseLegacyTables
-#    Metadata:
-#      cfn_nag:
-#        rules_to_suppress:
-#          - id: W28
-#            reason: DynamoDB tables require specific names to be compatible with Octagon
-#    Properties:
-#      KeySchema:
-#        - AttributeName: name
-#          KeyType: HASH
-#      AttributeDefinitions:
-#        - AttributeName: name
-#          AttributeType: S
-#      BillingMode: PAY_PER_REQUEST
-#      TableName: !Sub octagon-Datasets-${pEnvironment}-${pDomain}
-#      SSESpecification:
-#        SSEEnabled: True
-#        SSEType: KMS
-#        KMSMasterKeyId: !GetAtt rKMSKey.Arn
-#      PointInTimeRecoverySpecification:
-#        PointInTimeRecoveryEnabled: True
-#    UpdateReplacePolicy: Retain
-#    DeletionPolicy: Delete
-#
-#  rDynamoOctagonArtifacts:
-#    Type: AWS::DynamoDB::Table
-#    Condition: UseLegacyTables
-#    Metadata:
-#      cfn_nag:
-#        rules_to_suppress:
-#          - id: W28
-#            reason: DynamoDB tables require specific names to be compatible with Octagon
-#    Properties:
-#      KeySchema:
-#        - AttributeName: id
-#          KeyType: HASH
-#      AttributeDefinitions:
-#        - AttributeName: id
-#          AttributeType: S
-#        - AttributeName: date
-#          AttributeType: S
-#        - AttributeName: pipeline_and_target_type
-#          AttributeType: S
-#        - AttributeName: dataset
-#          AttributeType: S
-#        - AttributeName: pipeline
-#          AttributeType: S
-#        - AttributeName: pipelineSessionId
-#          AttributeType: S
-#      BillingMode: PAY_PER_REQUEST
-#      GlobalSecondaryIndexes:
-#        - IndexName: date-pipeline-artifact-type-index
-#          KeySchema:
-#            - AttributeName: date
-#              KeyType: HASH
-#            - AttributeName: pipeline_and_target_type
-#              KeyType: RANGE
-#          Projection:
-#            ProjectionType: ALL
-#        - IndexName: dataset-date-index
-#          KeySchema:
-#            - AttributeName: dataset
-#              KeyType: HASH
-#            - AttributeName: date
-#              KeyType: RANGE
-#          Projection:
-#            ProjectionType: ALL
-#        - IndexName: date-dataset-index
-#          KeySchema:
-#            - AttributeName: date
-#              KeyType: HASH
-#            - AttributeName: dataset
-#              KeyType: RANGE
-#          Projection:
-#            ProjectionType: ALL
-#        - IndexName: pipeline-date-index
-#          KeySchema:
-#            - AttributeName: pipeline
-#              KeyType: HASH
-#            - AttributeName: date
-#              KeyType: RANGE
-#          Projection:
-#            ProjectionType: ALL
-#        - IndexName: pipelineSessionId-index
-#          KeySchema:
-#            - AttributeName: pipelineSessionId
-#              KeyType: HASH
-#          Projection:
-#            ProjectionType: ALL
-#      TableName: !Sub octagon-Artifacts-${pEnvironment}-${pDomain}
-#      TimeToLiveSpecification:
-#        AttributeName: ttl
-#        Enabled: true
-#      SSESpecification:
-#        SSEEnabled: True
-#        SSEType: KMS
-#        KMSMasterKeyId: !GetAtt rKMSKey.Arn
-#      PointInTimeRecoverySpecification:
-#        PointInTimeRecoveryEnabled: True
-#    UpdateReplacePolicy: Retain
-#    DeletionPolicy: Delete
-#
-#  rDynamoOctagonMetrics:
-#    Type: AWS::DynamoDB::Table
-#    Condition: UseLegacyTables
-#    Metadata:
-#      cfn_nag:
-#        rules_to_suppress:
-#          - id: W28
-#            reason: DynamoDB tables require specific names to be compatible with Octagon
-#    Properties:
-#      KeySchema:
-#        - AttributeName: root
-#          KeyType: HASH
-#        - AttributeName: metric
-#          KeyType: RANGE
-#      AttributeDefinitions:
-#        - AttributeName: root
-#          AttributeType: S
-#        - AttributeName: metric
-#          AttributeType: S
-#        - AttributeName: last_updated_date
-#          AttributeType: S
-#        - AttributeName: type
-#          AttributeType: S
-#      BillingMode: PAY_PER_REQUEST
-#      GlobalSecondaryIndexes:
-#        - IndexName: last_updated_date-metric-index
-#          KeySchema:
-#            - AttributeName: last_updated_date
-#              KeyType: HASH
-#            - AttributeName: metric
-#              KeyType: RANGE
-#          Projection:
-#            ProjectionType: ALL
-#        - IndexName: type-metric-index
-#          KeySchema:
-#            - AttributeName: type
-#              KeyType: HASH
-#            - AttributeName: metric
-#              KeyType: RANGE
-#          Projection:
-#            ProjectionType: ALL
-#        - IndexName: root-last_updated_date-index
-#          KeySchema:
-#            - AttributeName: root
-#              KeyType: HASH
-#            - AttributeName: last_updated_date
-#              KeyType: RANGE
-#          Projection:
-#            ProjectionType: ALL
-#      TableName: !Sub octagon-Metrics-${pEnvironment}-${pDomain}
-#      TimeToLiveSpecification:
-#        AttributeName: ttl
-#        Enabled: true
-#      SSESpecification:
-#        SSEEnabled: True
-#        SSEType: KMS
-#        KMSMasterKeyId: !GetAtt rKMSKey.Arn
-#      PointInTimeRecoverySpecification:
-#        PointInTimeRecoveryEnabled: True
-#    UpdateReplacePolicy: Retain
-#    DeletionPolicy: Delete
-#
-#  rDynamoOctagonConfiguration:
-#    Type: AWS::DynamoDB::Table
-#    Condition: UseLegacyTables
-#    Metadata:
-#      cfn_nag:
-#        rules_to_suppress:
-#          - id: W28
-#            reason: DynamoDB tables require specific names to be compatible with Octagon
-#    Properties:
-#      KeySchema:
-#        - AttributeName: key
-#          KeyType: HASH
-#      AttributeDefinitions:
-#        - AttributeName: key
-#          AttributeType: S
-#        - AttributeName: type
-#          AttributeType: S
-#      BillingMode: PAY_PER_REQUEST
-#      GlobalSecondaryIndexes:
-#        - IndexName: type-index
-#          KeySchema:
-#            - AttributeName: type
-#              KeyType: HASH
-#          Projection:
-#            ProjectionType: ALL
-#      TableName: !Sub octagon-Configuration-${pEnvironment}-${pDomain}
-#      SSESpecification:
-#        SSEEnabled: True
-#        SSEType: KMS
-#        KMSMasterKeyId: !GetAtt rKMSKey.Arn
-#      PointInTimeRecoverySpecification:
-#        PointInTimeRecoveryEnabled: True
-#    UpdateReplacePolicy: Retain
-#    DeletionPolicy: Delete
-#
-#  rDynamoOctagonTeams:
-#    Type: AWS::DynamoDB::Table
-#    Condition: UseLegacyTables
-#    Metadata:
-#      cfn_nag:
-#        rules_to_suppress:
-#          - id: W28
-#            reason: DynamoDB tables require specific names to be compatible with Octagon
-#    Properties:
-#      KeySchema:
-#        - AttributeName: team
-#          KeyType: HASH
-#      AttributeDefinitions:
-#        - AttributeName: team
-#          AttributeType: S
-#      BillingMode: PAY_PER_REQUEST
-#      TableName: !Sub octagon-Teams-${pEnvironment}-${pDomain}
-#      SSESpecification:
-#        SSEEnabled: True
-#        SSEType: KMS
-#        KMSMasterKeyId: !GetAtt rKMSKey.Arn
-#      PointInTimeRecoverySpecification:
-#        PointInTimeRecoveryEnabled: True
-#    UpdateReplacePolicy: Retain
-#    DeletionPolicy: Delete
-#
-#  rDynamoOctagonPipelines:
-#    Type: AWS::DynamoDB::Table
-#    Condition: UseLegacyTables
-#    Metadata:
-#      cfn_nag:
-#        rules_to_suppress:
-#          - id: W28
-#            reason: DynamoDB tables require specific names to be compatible with Octagon
-#    Properties:
-#      KeySchema:
-#        - AttributeName: name
-#          KeyType: HASH
-#      AttributeDefinitions:
-#        - AttributeName: name
-#          AttributeType: S
-#      BillingMode: PAY_PER_REQUEST
-#      TableName: !Sub octagon-Pipelines-${pEnvironment}-${pDomain}
-#      SSESpecification:
-#        SSEEnabled: True
-#        SSEType: KMS
-#        KMSMasterKeyId: !GetAtt rKMSKey.Arn
-#      PointInTimeRecoverySpecification:
-#        PointInTimeRecoveryEnabled: True
-#    UpdateReplacePolicy: Retain
-#    DeletionPolicy: Delete
-#
-#  rDynamoOctagonEvents:
-#    Type: AWS::DynamoDB::Table
-#    Condition: UseLegacyTables
-#    Metadata:
-#      cfn_nag:
-#        rules_to_suppress:
-#          - id: W28
-#            reason: DynamoDB tables require specific names to be compatible with Octagon
-#    Properties:
-#      KeySchema:
-#        - AttributeName: id
-#          KeyType: HASH
-#      AttributeDefinitions:
-#        - AttributeName: id
-#          AttributeType: S
-#        - AttributeName: date
-#          AttributeType: S
-#        - AttributeName: reason
-#          AttributeType: S
-#        - AttributeName: pipeline
-#          AttributeType: S
-#        - AttributeName: date_and_reason
-#          AttributeType: S
-#      BillingMode: PAY_PER_REQUEST
-#      GlobalSecondaryIndexes:
-#        - IndexName: date-reason-index
-#          KeySchema:
-#            - AttributeName: date
-#              KeyType: HASH
-#            - AttributeName: reason
-#              KeyType: RANGE
-#          Projection:
-#            ProjectionType: ALL
-#        - IndexName: pipeline-date_reason-index
-#          KeySchema:
-#            - AttributeName: pipeline
-#              KeyType: HASH
-#            - AttributeName: date_and_reason
-#              KeyType: RANGE
-#          Projection:
-#            ProjectionType: ALL
-#        - IndexName: reason-date-index
-#          KeySchema:
-#            - AttributeName: reason
-#              KeyType: HASH
-#            - AttributeName: date
-#              KeyType: RANGE
-#          Projection:
-#            ProjectionType: ALL
-#      TableName: !Sub octagon-Events-${pEnvironment}-${pDomain}
-#      TimeToLiveSpecification:
-#        AttributeName: ttl
-#        Enabled: true
-#      SSESpecification:
-#        SSEEnabled: True
-#        SSEType: KMS
-#        KMSMasterKeyId: !GetAtt rKMSKey.Arn
-#      PointInTimeRecoverySpecification:
-#        PointInTimeRecoveryEnabled: True
-#    UpdateReplacePolicy: Retain
-#    DeletionPolicy: Delete
-#
-#  rDynamoOctagonExecutionHistory:
-#    Type: AWS::DynamoDB::Table
-#    Condition: UseLegacyTables
-#    Metadata:
-#      cfn_nag:
-#        rules_to_suppress:
-#          - id: W28
-#            reason: DynamoDB tables require specific names to be compatible with Octagon
-#    Properties:
-#      KeySchema:
-#        - AttributeName: id
-#          KeyType: HASH
-#      AttributeDefinitions:
-#        - AttributeName: id
-#          AttributeType: S
-#        - AttributeName: pipeline
-#          AttributeType: S
-#        - AttributeName: last_updated_timestamp
-#          AttributeType: S
-#        - AttributeName: execution_date
-#          AttributeType: S
-#        - AttributeName: status
-#          AttributeType: S
-#        - AttributeName: status_last_updated_timestamp
-#          AttributeType: S
-#        - AttributeName: dataset
-#          AttributeType: S
-#      BillingMode: PAY_PER_REQUEST
-#      GlobalSecondaryIndexes:
-#        - IndexName: pipeline-last-updated-index
-#          KeySchema:
-#            - AttributeName: pipeline
-#              KeyType: HASH
-#            - AttributeName: last_updated_timestamp
-#              KeyType: RANGE
-#          Projection:
-#            ProjectionType: ALL
-#        - IndexName: execution_date-status-index
-#          KeySchema:
-#            - AttributeName: execution_date
-#              KeyType: HASH
-#            - AttributeName: status
-#              KeyType: RANGE
-#          Projection:
-#            ProjectionType: ALL
-#        - IndexName: pipeline-execution_date-index
-#          KeySchema:
-#            - AttributeName: pipeline
-#              KeyType: HASH
-#            - AttributeName: execution_date
-#              KeyType: RANGE
-#          Projection:
-#            ProjectionType: ALL
-#        - IndexName: execution_date-last_updated-index
-#          KeySchema:
-#            - AttributeName: execution_date
-#              KeyType: HASH
-#            - AttributeName: last_updated_timestamp
-#              KeyType: RANGE
-#          Projection:
-#            ProjectionType: ALL
-#        - IndexName: status-last_updated-index
-#          KeySchema:
-#            - AttributeName: status
-#              KeyType: HASH
-#            - AttributeName: last_updated_timestamp
-#              KeyType: RANGE
-#          Projection:
-#            ProjectionType: ALL
-#        - IndexName: pipeline-status_last_updated-index
-#          KeySchema:
-#            - AttributeName: pipeline
-#              KeyType: HASH
-#            - AttributeName: status_last_updated_timestamp
-#              KeyType: RANGE
-#          Projection:
-#            ProjectionType: ALL
-#        - IndexName: dataset-status_last_updated_timestamp-index
-#          KeySchema:
-#            - AttributeName: dataset
-#              KeyType: HASH
-#            - AttributeName: status_last_updated_timestamp
-#              KeyType: RANGE
-#          Projection:
-#            ProjectionType: ALL
-#      TableName: !Sub octagon-PipelineExecutionHistory-${pEnvironment}-${pDomain}
-#      TimeToLiveSpecification:
-#        AttributeName: ttl
-#        Enabled: true
-#      SSESpecification:
-#        SSEEnabled: True
-#        SSEType: KMS
-#        KMSMasterKeyId: !GetAtt rKMSKey.Arn
-#      PointInTimeRecoverySpecification:
-#        PointInTimeRecoveryEnabled: True
-#    UpdateReplacePolicy: Retain
-#    DeletionPolicy: Delete
-#
-#  rDynamoOctagonSchemas:
-#    Type: AWS::DynamoDB::Table
-#    Condition: UseLegacyTables
-#    Metadata:
-#      cfn_nag:
-#        rules_to_suppress:
-#          - id: W28
-#            reason: DynamoDB tables require specific names to be compatible with Octagon
-#    Properties:
-#      KeySchema:
-#        - AttributeName: name
-#          KeyType: HASH
-#      AttributeDefinitions:
-#        - AttributeName: name
-#          AttributeType: S
-#      BillingMode: PAY_PER_REQUEST
-#      TableName: !Sub octagon-DataSchemas-${pEnvironment}-${pDomain}
-#      StreamSpecification:
-#        StreamViewType: NEW_AND_OLD_IMAGES
-#      SSESpecification:
-#        SSEEnabled: True
-#        SSEType: KMS
-#        KMSMasterKeyId: !GetAtt rKMSKey.Arn
-#      PointInTimeRecoverySpecification:
-#        PointInTimeRecoveryEnabled: True
-#    UpdateReplacePolicy: Retain
-#    DeletionPolicy: Delete
-#
-#  rDynamoOctagonManifests:
-#    Type: AWS::DynamoDB::Table
-#    Condition: UseLegacyTables
-#    Metadata:
-#      cfn_nag:
-#        rules_to_suppress:
-#          - id: W28
-#            reason: DynamoDB tables require specific names to be compatible with Octagon
-#    Properties:
-#      KeySchema:
-#        - AttributeName: dataset_name
-#          KeyType: HASH
-#        - AttributeName: datafile_name
-#          KeyType: RANGE
-#      AttributeDefinitions:
-#        - AttributeName: dataset_name
-#          AttributeType: S
-#        - AttributeName: datafile_name
-#          AttributeType: S
-#      BillingMode: PAY_PER_REQUEST
-#      TableName: !Sub octagon-Manifests-${pEnvironment}-${pDomain}
-#      TimeToLiveSpecification:
-#        AttributeName: ttl
-#        Enabled: true
-#      SSESpecification:
-#        SSEEnabled: True
-#        SSEType: KMS
-#        KMSMasterKeyId: !GetAtt rKMSKey.Arn
-#      PointInTimeRecoverySpecification:
-#        PointInTimeRecoveryEnabled: True
-#    UpdateReplacePolicy: Retain
-#    DeletionPolicy: Delete
-#
-#  rDynamoObjectMetadataSsm:
-#    Type: AWS::SSM::Parameter
-#    Properties:
-#      Name: !Sub /SDLF2/Dynamo/ObjectCatalog
-#      Type: String
-#      Value: !Ref rDynamoOctagonObjectMetadata
-#      Description: Name of the DynamoDB used to store metadata
-#  rDynamoTransformMappingSsm:
-#    Type: AWS::SSM::Parameter
-#    Condition: UseLegacyTables
-#    Properties:
-#      Name: !Sub /SDLF2/Dynamo/TransformMapping
-#      Type: String
-#      Value: !Ref rDynamoOctagonDatasets
-#      Description: Name of the DynamoDB used to store mappings to transformation (same as /SDLF/Dynamo/Datasets)
-#  rDynamoDatasetsSsm:
-#    Type: AWS::SSM::Parameter
-#    Condition: UseLegacyTables
-#    Properties:
-#      Name: !Sub /SDLF2/Dynamo/Datasets
-#      Type: String
-#      Value: !Ref rDynamoOctagonDatasets
-#      Description: Name of the DynamoDB used to store datasets metadata
-#  rDynamoPipelinesSsm:
-#    Type: AWS::SSM::Parameter
-#    Condition: UseLegacyTables
-#    Properties:
-#      Name: !Sub /SDLF2/Dynamo/Pipelines
-#      Type: String
-#      Value: !Ref rDynamoOctagonPipelines
-#      Description: Name of the DynamoDB used to store pipelines metadata
-#  rDynamoTeamMetadataSsm:
-#    Type: AWS::SSM::Parameter
-#    Condition: UseLegacyTables
-#    Properties:
-#      Name: !Sub /SDLF2/Dynamo/TeamMetadata
-#      Type: String
-#      Value: !Ref rDynamoOctagonTeams
-#      Description: Name of the DynamoDB used to store teams metadata
-#  rDynamoDataSchemasSsm:
-#    Type: AWS::SSM::Parameter
-#    Condition: UseLegacyTables
-#    Properties:
-#      Name: !Sub /SDLF2/Dynamo/DataSchemas
-#      Type: String
-#      Value: !Ref rDynamoOctagonSchemas
-#      Description: Name of the DynamoDB used to store data schemas
-#  rDynamoManifestsSsm:
-#    Type: AWS::SSM::Parameter
-#    Condition: UseLegacyTables
-#    Properties:
-#      Name: !Sub /SDLF2/Dynamo/Manifests
-#      Type: String
-#      Value: !Ref rDynamoOctagonManifests
-#      Description: Name of the DynamoDB used to store manifest process metadata
+  ######## DYNAMODB #########
+  rDynamoOctagonObjectMetadata:
+    Type: AWS::DynamoDB::Table
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W28
+            reason: DynamoDB tables require specific names to be compatible with Octagon
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+      TableName: !Sub octagon-ObjectMetadata-${pEnvironment}${pCustomSuffix}
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+      SSESpecification:
+        SSEEnabled: True
+        SSEType: KMS
+        KMSMasterKeyId: !GetAtt rKMSKey.Arn
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: True
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Delete
+
+  rDynamoOctagonDatasets:
+    Type: AWS::DynamoDB::Table
+    Condition: UseLegacyTables
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W28
+            reason: DynamoDB tables require specific names to be compatible with Octagon
+    Properties:
+      KeySchema:
+        - AttributeName: name
+          KeyType: HASH
+      AttributeDefinitions:
+        - AttributeName: name
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      TableName: !Sub octagon-Datasets-${pEnvironment}${pCustomSuffix}
+      SSESpecification:
+        SSEEnabled: True
+        SSEType: KMS
+        KMSMasterKeyId: !GetAtt rKMSKey.Arn
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: True
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Delete
+
+  rDynamoOctagonArtifacts:
+    Type: AWS::DynamoDB::Table
+    Condition: UseLegacyTables
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W28
+            reason: DynamoDB tables require specific names to be compatible with Octagon
+    Properties:
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: date
+          AttributeType: S
+        - AttributeName: pipeline_and_target_type
+          AttributeType: S
+        - AttributeName: dataset
+          AttributeType: S
+        - AttributeName: pipeline
+          AttributeType: S
+        - AttributeName: pipelineSessionId
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        - IndexName: date-pipeline-artifact-type-index
+          KeySchema:
+            - AttributeName: date
+              KeyType: HASH
+            - AttributeName: pipeline_and_target_type
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: dataset-date-index
+          KeySchema:
+            - AttributeName: dataset
+              KeyType: HASH
+            - AttributeName: date
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: date-dataset-index
+          KeySchema:
+            - AttributeName: date
+              KeyType: HASH
+            - AttributeName: dataset
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: pipeline-date-index
+          KeySchema:
+            - AttributeName: pipeline
+              KeyType: HASH
+            - AttributeName: date
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: pipelineSessionId-index
+          KeySchema:
+            - AttributeName: pipelineSessionId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+      TableName: !Sub octagon-Artifacts-${pEnvironment}${pCustomSuffix}
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      SSESpecification:
+        SSEEnabled: True
+        SSEType: KMS
+        KMSMasterKeyId: !GetAtt rKMSKey.Arn
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: True
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Delete
+
+  rDynamoOctagonMetrics:
+    Type: AWS::DynamoDB::Table
+    Condition: UseLegacyTables
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W28
+            reason: DynamoDB tables require specific names to be compatible with Octagon
+    Properties:
+      KeySchema:
+        - AttributeName: root
+          KeyType: HASH
+        - AttributeName: metric
+          KeyType: RANGE
+      AttributeDefinitions:
+        - AttributeName: root
+          AttributeType: S
+        - AttributeName: metric
+          AttributeType: S
+        - AttributeName: last_updated_date
+          AttributeType: S
+        - AttributeName: type
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        - IndexName: last_updated_date-metric-index
+          KeySchema:
+            - AttributeName: last_updated_date
+              KeyType: HASH
+            - AttributeName: metric
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: type-metric-index
+          KeySchema:
+            - AttributeName: type
+              KeyType: HASH
+            - AttributeName: metric
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: root-last_updated_date-index
+          KeySchema:
+            - AttributeName: root
+              KeyType: HASH
+            - AttributeName: last_updated_date
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      TableName: !Sub octagon-Metrics-${pEnvironment}${pCustomSuffix}
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      SSESpecification:
+        SSEEnabled: True
+        SSEType: KMS
+        KMSMasterKeyId: !GetAtt rKMSKey.Arn
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: True
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Delete
+
+  rDynamoOctagonConfiguration:
+    Type: AWS::DynamoDB::Table
+    Condition: UseLegacyTables
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W28
+            reason: DynamoDB tables require specific names to be compatible with Octagon
+    Properties:
+      KeySchema:
+        - AttributeName: key
+          KeyType: HASH
+      AttributeDefinitions:
+        - AttributeName: key
+          AttributeType: S
+        - AttributeName: type
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        - IndexName: type-index
+          KeySchema:
+            - AttributeName: type
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+      TableName: !Sub octagon-Configuration-${pEnvironment}${pCustomSuffix}
+      SSESpecification:
+        SSEEnabled: True
+        SSEType: KMS
+        KMSMasterKeyId: !GetAtt rKMSKey.Arn
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: True
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Delete
+
+  rDynamoOctagonTeams:
+    Type: AWS::DynamoDB::Table
+    Condition: UseLegacyTables
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W28
+            reason: DynamoDB tables require specific names to be compatible with Octagon
+    Properties:
+      KeySchema:
+        - AttributeName: team
+          KeyType: HASH
+      AttributeDefinitions:
+        - AttributeName: team
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      TableName: !Sub octagon-Teams-${pEnvironment}${pCustomSuffix}
+      SSESpecification:
+        SSEEnabled: True
+        SSEType: KMS
+        KMSMasterKeyId: !GetAtt rKMSKey.Arn
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: True
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Delete
+
+  rDynamoOctagonPipelines:
+    Type: AWS::DynamoDB::Table
+    Condition: UseLegacyTables
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W28
+            reason: DynamoDB tables require specific names to be compatible with Octagon
+    Properties:
+      KeySchema:
+        - AttributeName: name
+          KeyType: HASH
+      AttributeDefinitions:
+        - AttributeName: name
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      TableName: !Sub octagon-Pipelines-${pEnvironment}${pCustomSuffix}
+      SSESpecification:
+        SSEEnabled: True
+        SSEType: KMS
+        KMSMasterKeyId: !GetAtt rKMSKey.Arn
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: True
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Delete
+
+  rDynamoOctagonEvents:
+    Type: AWS::DynamoDB::Table
+    Condition: UseLegacyTables
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W28
+            reason: DynamoDB tables require specific names to be compatible with Octagon
+    Properties:
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: date
+          AttributeType: S
+        - AttributeName: reason
+          AttributeType: S
+        - AttributeName: pipeline
+          AttributeType: S
+        - AttributeName: date_and_reason
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        - IndexName: date-reason-index
+          KeySchema:
+            - AttributeName: date
+              KeyType: HASH
+            - AttributeName: reason
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: pipeline-date_reason-index
+          KeySchema:
+            - AttributeName: pipeline
+              KeyType: HASH
+            - AttributeName: date_and_reason
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: reason-date-index
+          KeySchema:
+            - AttributeName: reason
+              KeyType: HASH
+            - AttributeName: date
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      TableName: !Sub octagon-Events-${pEnvironment}${pCustomSuffix}
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      SSESpecification:
+        SSEEnabled: True
+        SSEType: KMS
+        KMSMasterKeyId: !GetAtt rKMSKey.Arn
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: True
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Delete
+
+  rDynamoOctagonExecutionHistory:
+    Type: AWS::DynamoDB::Table
+    Condition: UseLegacyTables
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W28
+            reason: DynamoDB tables require specific names to be compatible with Octagon
+    Properties:
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: pipeline
+          AttributeType: S
+        - AttributeName: last_updated_timestamp
+          AttributeType: S
+        - AttributeName: execution_date
+          AttributeType: S
+        - AttributeName: status
+          AttributeType: S
+        - AttributeName: status_last_updated_timestamp
+          AttributeType: S
+        - AttributeName: dataset
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        - IndexName: pipeline-last-updated-index
+          KeySchema:
+            - AttributeName: pipeline
+              KeyType: HASH
+            - AttributeName: last_updated_timestamp
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: execution_date-status-index
+          KeySchema:
+            - AttributeName: execution_date
+              KeyType: HASH
+            - AttributeName: status
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: pipeline-execution_date-index
+          KeySchema:
+            - AttributeName: pipeline
+              KeyType: HASH
+            - AttributeName: execution_date
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: execution_date-last_updated-index
+          KeySchema:
+            - AttributeName: execution_date
+              KeyType: HASH
+            - AttributeName: last_updated_timestamp
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: status-last_updated-index
+          KeySchema:
+            - AttributeName: status
+              KeyType: HASH
+            - AttributeName: last_updated_timestamp
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: pipeline-status_last_updated-index
+          KeySchema:
+            - AttributeName: pipeline
+              KeyType: HASH
+            - AttributeName: status_last_updated_timestamp
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+        - IndexName: dataset-status_last_updated_timestamp-index
+          KeySchema:
+            - AttributeName: dataset
+              KeyType: HASH
+            - AttributeName: status_last_updated_timestamp
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      TableName: !Sub octagon-PipelineExecutionHistory-${pEnvironment}${pCustomSuffix}
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      SSESpecification:
+        SSEEnabled: True
+        SSEType: KMS
+        KMSMasterKeyId: !GetAtt rKMSKey.Arn
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: True
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Delete
+
+  rDynamoOctagonSchemas:
+    Type: AWS::DynamoDB::Table
+    Condition: UseLegacyTables
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W28
+            reason: DynamoDB tables require specific names to be compatible with Octagon
+    Properties:
+      KeySchema:
+        - AttributeName: name
+          KeyType: HASH
+      AttributeDefinitions:
+        - AttributeName: name
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      TableName: !Sub octagon-DataSchemas-${pEnvironment}${pCustomSuffix}
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+      SSESpecification:
+        SSEEnabled: True
+        SSEType: KMS
+        KMSMasterKeyId: !GetAtt rKMSKey.Arn
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: True
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Delete
+
+  rDynamoOctagonManifests:
+    Type: AWS::DynamoDB::Table
+    Condition: UseLegacyTables
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W28
+            reason: DynamoDB tables require specific names to be compatible with Octagon
+    Properties:
+      KeySchema:
+        - AttributeName: dataset_name
+          KeyType: HASH
+        - AttributeName: datafile_name
+          KeyType: RANGE
+      AttributeDefinitions:
+        - AttributeName: dataset_name
+          AttributeType: S
+        - AttributeName: datafile_name
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      TableName: !Sub octagon-Manifests-${pEnvironment}${pCustomSuffix}
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
+      SSESpecification:
+        SSEEnabled: True
+        SSEType: KMS
+        KMSMasterKeyId: !GetAtt rKMSKey.Arn
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: True
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Delete
+
+  rDynamoObjectMetadataSsm:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /SDLF2/Dynamo/ObjectCatalog
+      Type: String
+      Value: !Ref rDynamoOctagonObjectMetadata
+      Description: Name of the DynamoDB used to store metadata
+  rDynamoTransformMappingSsm:
+    Type: AWS::SSM::Parameter
+    Condition: UseLegacyTables
+    Properties:
+      Name: /SDLF2/Dynamo/TransformMapping
+      Type: String
+      Value: !Ref rDynamoOctagonDatasets
+      Description: Name of the DynamoDB used to store mappings to transformation (same as /SDLF/Dynamo/Datasets)
+  rDynamoDatasetsSsm:
+    Type: AWS::SSM::Parameter
+    Condition: UseLegacyTables
+    Properties:
+      Name: /SDLF2/Dynamo/Datasets
+      Type: String
+      Value: !Ref rDynamoOctagonDatasets
+      Description: Name of the DynamoDB used to store datasets metadata
+  rDynamoPipelinesSsm:
+    Type: AWS::SSM::Parameter
+    Condition: UseLegacyTables
+    Properties:
+      Name: /SDLF2/Dynamo/Pipelines
+      Type: String
+      Value: !Ref rDynamoOctagonPipelines
+      Description: Name of the DynamoDB used to store pipelines metadata
+  rDynamoTeamMetadataSsm:
+    Type: AWS::SSM::Parameter
+    Condition: UseLegacyTables
+    Properties:
+      Name: /SDLF2/Dynamo/TeamMetadata
+      Type: String
+      Value: !Ref rDynamoOctagonTeams
+      Description: Name of the DynamoDB used to store teams metadata
+  rDynamoDataSchemasSsm:
+    Type: AWS::SSM::Parameter
+    Condition: UseLegacyTables
+    Properties:
+      Name: /SDLF2/Dynamo/DataSchemas
+      Type: String
+      Value: !Ref rDynamoOctagonSchemas
+      Description: Name of the DynamoDB used to store data schemas
+  rDynamoManifestsSsm:
+    Type: AWS::SSM::Parameter
+    Condition: UseLegacyTables
+    Properties:
+      Name: /SDLF2/Dynamo/Manifests
+      Type: String
+      Value: !Ref rDynamoOctagonManifests
+      Description: Name of the DynamoDB used to store manifest process metadata
 
   ######## GLUE REPLICATION #########
   ######## LAMBDA #########
@@ -1504,7 +1508,7 @@ Resources:
     Type: AWS::Serverless::Function
     Condition: UseLegacyTables
     Properties:
-      FunctionName: sdlf2-glue-replication
+      FunctionName: !Sub sdlf-glue-replication${pCustomSuffix}
       Description: Replicates Glue Catalog Metadata and Data Quality to Octagon Schemas Table
       CodeUri: ./lambda/replicate/src
       Environment:
@@ -1555,7 +1559,7 @@ Resources:
   rOrganizationSsm:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub /SDLF2/Misc/pOrg
+      Name: /SDLF2/Misc/pOrg
       Type: String
       Value: !Ref pOrg
       Description: Name of the Organization owning the datalake
@@ -1563,7 +1567,7 @@ Resources:
   rDomainSsm:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub /SDLF2/Misc/pDomain
+      Name: /SDLF2/Misc/pDomain
       Type: String
       Value: !Ref pDomain
       Description: Data domain name
@@ -1571,7 +1575,7 @@ Resources:
   rEnvironmentSsm:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub /SDLF2/Misc/pEnv
+      Name: /SDLF2/Misc/pEnv
       Type: String
       Value: !Ref pEnvironment
       Description: Environment name
@@ -1580,7 +1584,7 @@ Resources:
     Type: AWS::SSM::Parameter
     Condition: UseLegacyTables
     Properties:
-      Name: !Sub /SDLF2/IAM/DataLakeAdminRoleArn
+      Name: /SDLF2/IAM/DataLakeAdminRoleArn
       Type: String
       Value: !GetAtt rDataLakeAdminRole.Arn
       Description: Lake Formation Data Lake Admin Role
@@ -1588,7 +1592,7 @@ Resources:
   rS3AccessLogsBucketSsm:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub /SDLF2/S3/AccessLogsBucket
+      Name: /SDLF2/S3/AccessLogsBucket
       Type: String
       Value: !Ref rS3AccessLogsBucket
       Description: S3 Access Logs Bucket

@@ -2,8 +2,8 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: Multi-environment CICD team repos resources in shared DevOps account
 
 Parameters:
-  pGenericPrefix:
-    Description: Generic prefix for resource names
+  pCustomIdentifier:
+    Description: Custom identifier for resource names
     Type: String
     Default: sdlf
   pKMSKey:
@@ -11,7 +11,7 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<String>
     Default: /SDLF/KMS/CICDKeyId
   pEnableMonitoring:
-    Description: !Sub Build ${pGenericPrefix}-monitoring cloudformation module as part of domain pipelines
+    Description: Build sdlf monitoring cloudformation module as part of domain pipelines
     Type: AWS::SSM::Parameter::Value<String>
     Default: /SDLF/Monitoring/Enabled
 
@@ -34,7 +34,7 @@ Resources:
           ignore_checks:
           - E3001
     Properties:
-      Name: !Sub ${pGenericPrefix}-cicd
+      Name: !Sub sdlf-${pCustomIdentifier}cicd
 #      Path: "{{resolve:ssm:/SDLF/${pGitPlatform}/Group}}"
 
   rFoundationsGitLab:
@@ -45,7 +45,7 @@ Resources:
           ignore_checks:
           - E3001
     Properties:
-      Name: !Sub ${pGenericPrefix}-foundations
+      Name: !Sub sdlf-${pCustomIdentifier}foundations
 #      Path: "{{resolve:ssm:/SDLF/${pGitPlatform}/Group}}"
 
   rTeamGitLab:
@@ -56,7 +56,7 @@ Resources:
           ignore_checks:
           - E3001
     Properties:
-      Name: !Sub ${pGenericPrefix}-team
+      Name: !Sub sdlf-${pCustomIdentifier}team
 #      Path: "{{resolve:ssm:/SDLF/${pGitPlatform}/Group}}"
 
   rPipelineGitLab:
@@ -67,7 +67,7 @@ Resources:
           ignore_checks:
           - E3001
     Properties:
-      Name: !Sub ${pGenericPrefix}-pipeline
+      Name: !Sub sdlf-${pCustomIdentifier}pipeline
 #      Path: "{{resolve:ssm:/SDLF/${pGitPlatform}/Group}}"
 
   rDatasetGitLab:
@@ -78,7 +78,7 @@ Resources:
           ignore_checks:
           - E3001
     Properties:
-      Name: !Sub ${pGenericPrefix}-dataset
+      Name: !Sub sdlf-${pCustomIdentifier}dataset
 #      Path: "{{resolve:ssm:/SDLF/${pGitPlatform}/Group}}"
 
   rStageAGitLab:
@@ -89,7 +89,7 @@ Resources:
           ignore_checks:
           - E3001
     Properties:
-      Name: !Sub ${pGenericPrefix}-stageA
+      Name: !Sub sdlf-${pCustomIdentifier}stageA
 #      Path: "{{resolve:ssm:/SDLF/${pGitPlatform}/Group}}"
 
   rStageLambdaGitLab:
@@ -100,7 +100,7 @@ Resources:
           ignore_checks:
           - E3001
     Properties:
-      Name: !Sub ${pGenericPrefix}-stage-lambda
+      Name: !Sub sdlf-${pCustomIdentifier}stage-lambda
 #      Path: "{{resolve:ssm:/SDLF/${pGitPlatform}/Group}}"
 
   rStageBGitLab:
@@ -111,7 +111,7 @@ Resources:
           ignore_checks:
           - E3001
     Properties:
-      Name: !Sub ${pGenericPrefix}-stageB
+      Name: !Sub sdlf-${pCustomIdentifier}stageB
 #      Path: "{{resolve:ssm:/SDLF/${pGitPlatform}/Group}}"
 
   rStageGlueGitLab:
@@ -122,7 +122,7 @@ Resources:
           ignore_checks:
           - E3001
     Properties:
-      Name: !Sub ${pGenericPrefix}-stage-glue
+      Name: !Sub sdlf-${pCustomIdentifier}stage-glue
 #      Path: "{{resolve:ssm:/SDLF/${pGitPlatform}/Group}}"
 
   rDatalakeLibraryGitLab:
@@ -133,7 +133,7 @@ Resources:
           ignore_checks:
           - E3001
     Properties:
-      Name: !Sub ${pGenericPrefix}-datalakeLibrary
+      Name: !Sub sdlf-${pCustomIdentifier}datalakeLibrary
 #      Path: "{{resolve:ssm:/SDLF/${pGitPlatform}/Group}}"
 
   rMainGitLab:
@@ -144,7 +144,7 @@ Resources:
           ignore_checks:
           - E3001
     Properties:
-      Name: !Sub ${pGenericPrefix}-main
+      Name: !Sub sdlf-${pCustomIdentifier}main
 #      Path: "{{resolve:ssm:/SDLF/${pGitPlatform}/Group}}"
 
   rMonitoringGitLab:
@@ -156,7 +156,7 @@ Resources:
           - E3001
     Condition: EnableMonitoring
     Properties:
-      Name: !Sub ${pGenericPrefix}-monitoring
+      Name: !Sub sdlf-${pCustomIdentifier}monitoring
 #      Path: "{{resolve:ssm:/SDLF/${pGitPlatform}/Group}}"
 
   rCicdGitLabSsm:
@@ -164,7 +164,7 @@ Resources:
     Properties:
       Name: /SDLF/GitLab/CicdGitLab
       Type: String
-      Value: !Sub ${pGenericPrefix}-cicd # !GetAtt rCicdGitLab.Name
+      Value: !Sub sdlf-${pCustomIdentifier}cicd # !GetAtt rCicdGitLab.Name
       Description: Name of the Cicd repository
 
   rFoundationsGitLabSsm:
@@ -172,7 +172,7 @@ Resources:
     Properties:
       Name: /SDLF/GitLab/FoundationsGitLab
       Type: String
-      Value: !Sub ${pGenericPrefix}-foundations # !GetAtt rFoundationsGitLab.Name
+      Value: !Sub sdlf-${pCustomIdentifier}foundations # !GetAtt rFoundationsGitLab.Name
       Description: Name of the Foundations repository
 
   rTeamGitLabSsm:
@@ -180,7 +180,7 @@ Resources:
     Properties:
       Name: /SDLF/GitLab/TeamGitLab
       Type: String
-      Value: !Sub ${pGenericPrefix}-team # !GetAtt rTeamGitLab.Name
+      Value: !Sub sdlf-${pCustomIdentifier}team # !GetAtt rTeamGitLab.Name
       Description: Name of the Team repository
 
   rPipelineGitLabSsm:
@@ -188,7 +188,7 @@ Resources:
     Properties:
       Name: /SDLF/GitLab/PipelineGitLab
       Type: String
-      Value: !Sub ${pGenericPrefix}-pipeline # !GetAtt rPipelineGitLab.Name
+      Value: !Sub sdlf-${pCustomIdentifier}pipeline # !GetAtt rPipelineGitLab.Name
       Description: Name of the Pipeline repository
 
   rDatasetGitLabSsm:
@@ -196,7 +196,7 @@ Resources:
     Properties:
       Name: /SDLF/GitLab/DatasetGitLab
       Type: String
-      Value: !Sub ${pGenericPrefix}-dataset # !GetAtt rDatasetGitLab.Name
+      Value: !Sub sdlf-${pCustomIdentifier}dataset # !GetAtt rDatasetGitLab.Name
       Description: Name of the Dataset repository
 
   rStageAGitLabSsm:
@@ -204,7 +204,7 @@ Resources:
     Properties:
       Name: /SDLF/GitLab/StageAGitLab
       Type: String
-      Value: !Sub ${pGenericPrefix}-stageA # !GetAtt rStageAGitLab.Name
+      Value: !Sub sdlf-${pCustomIdentifier}stageA # !GetAtt rStageAGitLab.Name
       Description: Name of the StageA repository
 
   rStageLambdaGitLabSsm:
@@ -212,7 +212,7 @@ Resources:
     Properties:
       Name: /SDLF/GitLab/StageLambdaGitLab
       Type: String
-      Value: !Sub ${pGenericPrefix}-stage-lambda # !GetAtt rStageLambdaGitLab.Name
+      Value: !Sub sdlf-${pCustomIdentifier}stage-lambda # !GetAtt rStageLambdaGitLab.Name
       Description: Name of the Stage-Lambda repository
 
   rStageBGitLabSsm:
@@ -220,7 +220,7 @@ Resources:
     Properties:
       Name: /SDLF/GitLab/StageBGitLab
       Type: String
-      Value: !Sub ${pGenericPrefix}-stageB # !GetAtt rStageBGitLab.Name
+      Value: !Sub sdlf-${pCustomIdentifier}stageB # !GetAtt rStageBGitLab.Name
       Description: Name of the StageB repository
 
   rStageGlueGitLabSsm:
@@ -228,7 +228,7 @@ Resources:
     Properties:
       Name: /SDLF/GitLab/StageGlueGitLab
       Type: String
-      Value: !Sub ${pGenericPrefix}-stage-glue # !GetAtt rStageGlueGitLab.Name
+      Value: !Sub sdlf-${pCustomIdentifier}stage-glue # !GetAtt rStageGlueGitLab.Name
       Description: Name of the Stage-Glue repository
 
   rDatalakeLibraryGitLabSsm:
@@ -236,7 +236,7 @@ Resources:
     Properties:
       Name: /SDLF/GitLab/DatalakeLibraryGitLab
       Type: String
-      Value: !Sub ${pGenericPrefix}-datalakeLibrary # !GetAtt rDatalakeLibraryGitLab.Name
+      Value: !Sub sdlf-${pCustomIdentifier}datalakeLibrary # !GetAtt rDatalakeLibraryGitLab.Name
       Description: Name of the DatalakeLibrary repository
 
   rMainGitLabSsm:
@@ -244,7 +244,7 @@ Resources:
     Properties:
       Name: /SDLF/GitLab/MainGitLab
       Type: String
-      Value: !Sub ${pGenericPrefix}-main # !GetAtt rMainGitLab.Name
+      Value: !Sub sdlf-${pCustomIdentifier}main # !GetAtt rMainGitLab.Name
       Description: Name of the main repository
 
   rMonitoringGitLabSsm:
@@ -253,7 +253,7 @@ Resources:
     Properties:
       Name: /SDLF/GitLab/MonitoringGitLab
       Type: String
-      Value: !Sub ${pGenericPrefix}-monitoring
+      Value: !Sub sdlf-${pCustomIdentifier}monitoring
       Description: Name of the monitoring repository
 
 Outputs:

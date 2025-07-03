@@ -2,8 +2,8 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: Multi-environment CICD team repos resources in shared DevOps account
 
 Parameters:
-  pGenericPrefix:
-    Description: Generic prefix for resource names
+  pCustomIdentifier:
+    Description: Custom identifier for resource names
     Type: String
     Default: sdlf
   pKMSKey:
@@ -15,7 +15,7 @@ Parameters:
     Type: AWS::SSM::Parameter::Value<String>
     Default: /SDLF/Misc/GitPlatform
   pEnableMonitoring:
-    Description: !Sub Build ${pGenericPrefix}-monitoring cloudformation module as part of domain pipelines
+    Description: Build sdlf monitoring cloudformation module as part of domain pipelines
     Type: AWS::SSM::Parameter::Value<String>
     Default: /SDLF/Monitoring/Enabled
 
@@ -32,7 +32,7 @@ Resources:
           - E3001
     Properties:
       Org: !Sub "{{resolve:ssm:/SDLF/${pGitPlatform}/Group}}"
-      Name: !Sub ${pGenericPrefix}-cicd
+      Name: !Sub sdlf-${pCustomIdentifier}cicd
       Private: true
       Visibility: private
       Archived: false
@@ -46,7 +46,7 @@ Resources:
           - E3001
     Properties:
       Org: !Sub "{{resolve:ssm:/SDLF/${pGitPlatform}/Group}}"
-      Name: !Sub ${pGenericPrefix}-foundations
+      Name: !Sub sdlf-${pCustomIdentifier}foundations
       Private: true
       Visibility: private
       Archived: false
@@ -60,7 +60,7 @@ Resources:
           - E3001
     Properties:
       Org: !Sub "{{resolve:ssm:/SDLF/${pGitPlatform}/Group}}"
-      Name: !Sub ${pGenericPrefix}-team
+      Name: !Sub sdlf-${pCustomIdentifier}team
       Private: true
       Visibility: private
       Archived: false
@@ -74,7 +74,7 @@ Resources:
           - E3001
     Properties:
       Org: !Sub "{{resolve:ssm:/SDLF/${pGitPlatform}/Group}}"
-      Name: !Sub ${pGenericPrefix}-pipeline
+      Name: !Sub sdlf-${pCustomIdentifier}pipeline
       Private: true
       Visibility: private
       Archived: false
@@ -88,7 +88,7 @@ Resources:
           - E3001
     Properties:
       Org: !Sub "{{resolve:ssm:/SDLF/${pGitPlatform}/Group}}"
-      Name: !Sub ${pGenericPrefix}-dataset
+      Name: !Sub sdlf-${pCustomIdentifier}dataset
       Private: true
       Visibility: private
       Archived: false
@@ -102,7 +102,7 @@ Resources:
           - E3001
     Properties:
       Org: !Sub "{{resolve:ssm:/SDLF/${pGitPlatform}/Group}}"
-      Name: !Sub ${pGenericPrefix}-stageA
+      Name: !Sub sdlf-${pCustomIdentifier}stageA
       Private: true
       Visibility: private
       Archived: false
@@ -116,7 +116,7 @@ Resources:
           - E3001
     Properties:
       Org: !Sub "{{resolve:ssm:/SDLF/${pGitPlatform}/Group}}"
-      Name: !Sub ${pGenericPrefix}-stage-lambda
+      Name: !Sub sdlf-${pCustomIdentifier}stage-lambda
       Private: true
       Visibility: private
       Archived: false
@@ -130,7 +130,7 @@ Resources:
           - E3001
     Properties:
       Org: !Sub "{{resolve:ssm:/SDLF/${pGitPlatform}/Group}}"
-      Name: !Sub ${pGenericPrefix}-stageB
+      Name: !Sub sdlf-${pCustomIdentifier}stageB
       Private: true
       Visibility: private
       Archived: false
@@ -144,7 +144,7 @@ Resources:
           - E3001
     Properties:
       Org: !Sub "{{resolve:ssm:/SDLF/${pGitPlatform}/Group}}"
-      Name: !Sub ${pGenericPrefix}-stage-glue
+      Name: !Sub sdlf-${pCustomIdentifier}stage-glue
       Private: true
       Visibility: private
       Archived: false
@@ -158,7 +158,7 @@ Resources:
           - E3001
     Properties:
       Org: !Sub "{{resolve:ssm:/SDLF/${pGitPlatform}/Group}}"
-      Name: !Sub ${pGenericPrefix}-datalakeLibrary
+      Name: !Sub sdlf-${pCustomIdentifier}datalakeLibrary
       Private: true
       Visibility: private
       Archived: false
@@ -172,7 +172,7 @@ Resources:
           - E3001
     Properties:
       Org: !Sub "{{resolve:ssm:/SDLF/${pGitPlatform}/Group}}"
-      Name: !Sub ${pGenericPrefix}-main
+      Name: !Sub sdlf-${pCustomIdentifier}main
       Private: true
       Visibility: private
       Archived: false
@@ -187,7 +187,7 @@ Resources:
     Condition: EnableMonitoring
     Properties:
       Org: !Sub "{{resolve:ssm:/SDLF/${pGitPlatform}/Group}}"
-      Name: !Sub ${pGenericPrefix}-monitoring
+      Name: !Sub sdlf-${pCustomIdentifier}monitoring
       Private: true
       Visibility: private
       Archived: false
@@ -197,7 +197,7 @@ Resources:
     Properties:
       Name: /SDLF/GitHub/CicdGitHub
       Type: String
-      Value: !Sub ${pGenericPrefix}-cicd # !GetAtt rCicdGitHub.Name
+      Value: !Sub sdlf-${pCustomIdentifier}cicd # !GetAtt rCicdGitHub.Name
       Description: Name of the Cicd repository
 
   rFoundationsGitHubSsm:
@@ -205,7 +205,7 @@ Resources:
     Properties:
       Name: /SDLF/GitHub/FoundationsGitHub
       Type: String
-      Value: !Sub ${pGenericPrefix}-foundations # !GetAtt rFoundationsGitHub.Name
+      Value: !Sub sdlf-${pCustomIdentifier}foundations # !GetAtt rFoundationsGitHub.Name
       Description: Name of the Foundations repository
 
   rTeamGitHubSsm:
@@ -213,7 +213,7 @@ Resources:
     Properties:
       Name: /SDLF/GitHub/TeamGitHub
       Type: String
-      Value: !Sub ${pGenericPrefix}-team # !GetAtt rTeamGitHub.Name
+      Value: !Sub sdlf-${pCustomIdentifier}team # !GetAtt rTeamGitHub.Name
       Description: Name of the Team repository
 
   rPipelineGitHubSsm:
@@ -221,7 +221,7 @@ Resources:
     Properties:
       Name: /SDLF/GitHub/PipelineGitHub
       Type: String
-      Value: !Sub ${pGenericPrefix}-pipeline # !GetAtt rPipelineGitHub.Name
+      Value: !Sub sdlf-${pCustomIdentifier}pipeline # !GetAtt rPipelineGitHub.Name
       Description: Name of the Pipeline repository
 
   rDatasetGitHubSsm:
@@ -229,7 +229,7 @@ Resources:
     Properties:
       Name: /SDLF/GitHub/DatasetGitHub
       Type: String
-      Value: !Sub ${pGenericPrefix}-dataset # !GetAtt rDatasetGitHub.Name
+      Value: !Sub sdlf-${pCustomIdentifier}dataset # !GetAtt rDatasetGitHub.Name
       Description: Name of the Dataset repository
 
   rStageAGitHubSsm:
@@ -237,7 +237,7 @@ Resources:
     Properties:
       Name: /SDLF/GitHub/StageAGitHub
       Type: String
-      Value: !Sub ${pGenericPrefix}-stageA # !GetAtt rStageAGitHub.Name
+      Value: !Sub sdlf-${pCustomIdentifier}stageA # !GetAtt rStageAGitHub.Name
       Description: Name of the StageA repository
 
   rStageLambdaGitHubSsm:
@@ -245,7 +245,7 @@ Resources:
     Properties:
       Name: /SDLF/GitHub/StageLambdaGitHub
       Type: String
-      Value: !Sub ${pGenericPrefix}-stage-lambda # !GetAtt rStageLambdaGitHub.Name
+      Value: !Sub sdlf-${pCustomIdentifier}stage-lambda # !GetAtt rStageLambdaGitHub.Name
       Description: Name of the Stage-Lambda repository
 
   rStageBGitHubSsm:
@@ -253,7 +253,7 @@ Resources:
     Properties:
       Name: /SDLF/GitHub/StageBGitHub
       Type: String
-      Value: !Sub ${pGenericPrefix}-stageB # !GetAtt rStageBGitHub.Name
+      Value: !Sub sdlf-${pCustomIdentifier}stageB # !GetAtt rStageBGitHub.Name
       Description: Name of the StageB repository
 
   rStageGlueGitHubSsm:
@@ -261,7 +261,7 @@ Resources:
     Properties:
       Name: /SDLF/GitHub/StageGlueGitHub
       Type: String
-      Value: !Sub ${pGenericPrefix}-stage-glue # !GetAtt rStageGlueGitHub.Name
+      Value: !Sub sdlf-${pCustomIdentifier}stage-glue # !GetAtt rStageGlueGitHub.Name
       Description: Name of the Stage-Glue repository
 
   rDatalakeLibraryGitHubSsm:
@@ -269,7 +269,7 @@ Resources:
     Properties:
       Name: /SDLF/GitHub/DatalakeLibraryGitHub
       Type: String
-      Value: !Sub ${pGenericPrefix}-datalakeLibrary # !GetAtt rDatalakeLibraryGitHub.Name
+      Value: !Sub sdlf-${pCustomIdentifier}datalakeLibrary # !GetAtt rDatalakeLibraryGitHub.Name
       Description: Name of the DatalakeLibrary repository
 
   rMainGitHubSsm:
@@ -277,7 +277,7 @@ Resources:
     Properties:
       Name: /SDLF/GitHub/MainGitHub
       Type: String
-      Value: !Sub ${pGenericPrefix}-main  # !GetAtt rMainGitHub.Name
+      Value: !Sub sdlf-${pCustomIdentifier}main  # !GetAtt rMainGitHub.Name
       Description: Name of the main repository
 
   rMonitoringGitHubSsm:

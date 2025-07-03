@@ -2,10 +2,10 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: Multi-environment CICD team repos resources in shared DevOps account
 
 Parameters:
-  pGenericPrefix:
-    Description: Generic prefix for resource names
+  pCustomIdentifier:
+    Description: Custom identifier for resource names
     Type: String
-    Default: sdlf
+    Default: ""
   pKMSKey:
     Description: The KMS key used by CodeBuild and CodePipeline
     Type: AWS::SSM::Parameter::Value<String>
@@ -31,8 +31,8 @@ Resources:
       Code:
         BranchName: main
         S3: ../sdlf-cicd
-      RepositoryDescription: !Sub ${pGenericPrefix}-cicd repository
-      RepositoryName: !Sub ${pGenericPrefix}-cicd
+      RepositoryDescription: !Sub sdlf-${pCustomIdentifier}cicd repository
+      RepositoryName: !Sub sdlf-${pCustomIdentifier}cicd
       KmsKeyId: !Ref pKMSKey
 
   rFoundationsCodeCommit:
@@ -46,8 +46,8 @@ Resources:
       Code:
         BranchName: main
         S3: ../sdlf-foundations
-      RepositoryDescription: !Sub ${pGenericPrefix}-foundations repository
-      RepositoryName: !Sub ${pGenericPrefix}-foundations
+      RepositoryDescription: !Sub sdlf-${pCustomIdentifier}foundations repository
+      RepositoryName: !Sub sdlf-${pCustomIdentifier}foundations
       KmsKeyId: !Ref pKMSKey
 
   rTeamCodeCommit:
@@ -61,8 +61,8 @@ Resources:
       Code:
         BranchName: main
         S3: ../sdlf-team
-      RepositoryDescription: !Sub ${pGenericPrefix}-team repository
-      RepositoryName: !Sub ${pGenericPrefix}-team
+      RepositoryDescription: !Sub sdlf-${pCustomIdentifier}team repository
+      RepositoryName: !Sub sdlf-${pCustomIdentifier}team
       KmsKeyId: !Ref pKMSKey
 
   rPipelineCodeCommit:
@@ -76,8 +76,8 @@ Resources:
       Code:
         BranchName: main
         S3: ../sdlf-pipeline
-      RepositoryDescription: !Sub ${pGenericPrefix}-pipeline repository
-      RepositoryName: !Sub ${pGenericPrefix}-pipeline
+      RepositoryDescription: !Sub sdlf-${pCustomIdentifier}pipeline repository
+      RepositoryName: !Sub sdlf-${pCustomIdentifier}pipeline
       KmsKeyId: !Ref pKMSKey
 
   rDatasetCodeCommit:
@@ -91,8 +91,8 @@ Resources:
       Code:
         BranchName: main
         S3: ../sdlf-dataset
-      RepositoryDescription: !Sub ${pGenericPrefix}-dataset repository
-      RepositoryName: !Sub ${pGenericPrefix}-dataset
+      RepositoryDescription: !Sub sdlf-${pCustomIdentifier}dataset repository
+      RepositoryName: !Sub sdlf-${pCustomIdentifier}dataset
       KmsKeyId: !Ref pKMSKey
 
   rStageACodeCommit:
@@ -106,8 +106,8 @@ Resources:
       Code:
         BranchName: main
         S3: ../sdlf-stageA
-      RepositoryDescription: !Sub ${pGenericPrefix}-stageA repository
-      RepositoryName: !Sub ${pGenericPrefix}-stageA
+      RepositoryDescription: !Sub sdlf-${pCustomIdentifier}stageA repository
+      RepositoryName: !Sub sdlf-${pCustomIdentifier}stageA
       KmsKeyId: !Ref pKMSKey
 
   rStageLambdaCodeCommit:
@@ -121,8 +121,8 @@ Resources:
       Code:
         BranchName: main
         S3: ../sdlf-stage-lambda
-      RepositoryDescription: !Sub ${pGenericPrefix}-stage-lambda repository
-      RepositoryName: !Sub ${pGenericPrefix}-stage-lambda
+      RepositoryDescription: !Sub sdlf-${pCustomIdentifier}stage-lambda repository
+      RepositoryName: !Sub sdlf-${pCustomIdentifier}stage-lambda
       KmsKeyId: !Ref pKMSKey
 
   rStageBCodeCommit:
@@ -136,8 +136,8 @@ Resources:
       Code:
         BranchName: main
         S3: ../sdlf-stageB
-      RepositoryDescription: !Sub ${pGenericPrefix}-stageB repository
-      RepositoryName: !Sub ${pGenericPrefix}-stageB
+      RepositoryDescription: !Sub sdlf-${pCustomIdentifier}stageB repository
+      RepositoryName: !Sub sdlf-${pCustomIdentifier}stageB
       KmsKeyId: !Ref pKMSKey
 
   rStageGlueCodeCommit:
@@ -151,8 +151,8 @@ Resources:
       Code:
         BranchName: main
         S3: ../sdlf-stage-glue
-      RepositoryDescription: !Sub ${pGenericPrefix}-stage-glue repository
-      RepositoryName: !Sub ${pGenericPrefix}-stage-glue
+      RepositoryDescription: !Sub sdlf-${pCustomIdentifier}stage-glue repository
+      RepositoryName: !Sub sdlf-${pCustomIdentifier}stage-glue
       KmsKeyId: !Ref pKMSKey
 
   rDatalakeLibraryCodeCommit:
@@ -166,8 +166,8 @@ Resources:
       Code:
         BranchName: main
         S3: ../sdlf-datalakeLibrary
-      RepositoryDescription: !Sub ${pGenericPrefix}-datalakeLibrary repository
-      RepositoryName: !Sub ${pGenericPrefix}-datalakeLibrary
+      RepositoryDescription: !Sub sdlf-${pCustomIdentifier}datalakeLibrary repository
+      RepositoryName: !Sub sdlf-${pCustomIdentifier}datalakeLibrary
       KmsKeyId: !Ref pKMSKey
 
   rMainCodeCommit:
@@ -181,8 +181,8 @@ Resources:
       Code:
         BranchName: main
         S3: ./README.md
-      RepositoryDescription: !Sub ${pGenericPrefix}-main repository
-      RepositoryName: !Sub ${pGenericPrefix}-main
+      RepositoryDescription: !Sub sdlf-${pCustomIdentifier}main repository
+      RepositoryName: !Sub sdlf-${pCustomIdentifier}main
       KmsKeyId: !Ref pKMSKey
 
   rMonitoringCodeCommit:
@@ -197,8 +197,8 @@ Resources:
       Code:
         BranchName: main
         S3: ../sdlf-monitoring
-      RepositoryDescription: !Sub ${pGenericPrefix}-monitoring repository
-      RepositoryName: !Sub ${pGenericPrefix}-monitoring
+      RepositoryDescription: !Sub sdlf-${pCustomIdentifier}monitoring repository
+      RepositoryName: !Sub sdlf-${pCustomIdentifier}monitoring
       KmsKeyId: !Ref pKMSKey
 
   rCicdCodeCommitSsm:

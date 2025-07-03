@@ -3,10 +3,6 @@ Transform: AWS::LanguageExtensions
 Description: Deploy Glue jobs
 
 Parameters:
-  pDomain:
-    Description: Data domain name
-    Type: String
-    Default: "{{resolve:ssm:/SDLF2/Misc/pDomain}}"
   pArtifactsBucket:
     Description: The artifacts bucket used by CodeBuild and CodePipeline
     Type: String

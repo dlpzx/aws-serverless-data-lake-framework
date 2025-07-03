@@ -15,8 +15,7 @@ ssm_endpoint_url = "https://ssm." + os.getenv("AWS_REGION") + ".amazonaws.com"
 ssm = boto3.client("ssm", endpoint_url=ssm_endpoint_url)
 lf_endpoint_url = "https://lakeformation." + os.getenv("AWS_REGION") + ".amazonaws.com"
 lf = boto3.client("lakeformation", endpoint_url=lf_endpoint_url)
-domain = os.getenv("DOMAIN")
-schemas_table = ssm.get_parameter(Name=f'/SDLF2/Dynamo/DataSchemas')["Parameter"]["Value"]
+schemas_table = ssm.get_parameter(Name="/SDLF2/Dynamo/DataSchemas")["Parameter"]["Value"]
 
 
 def get_current_time():
@@ -112,7 +111,7 @@ def lambda_handler(event, context):
                     table = glue.get_table(DatabaseName=database_name, Name=table_name)["Table"]
                     table_item = build_table_item(team, dataset, table)
                     put_table_item(table_item)
-                    iam_arn = ssm.get_parameter(Name=f'/SDLF/{domain}IAM/DataLakeAdminRoleArn')["Parameter"]["Value"]
+                    iam_arn = ssm.get_parameter(Name="/SDLF2/IAM/DataLakeAdminRoleArn")["Parameter"]["Value"]
                     grant_table_permissions(iam_arn, database_name, table_name, ["SELECT", "ALTER", "INSERT", "DELETE"])
                 except Exception as e:
                     logger.error(f"Fatal error for table {table_name} in database {database_name}")
