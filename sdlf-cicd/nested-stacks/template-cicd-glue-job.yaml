@@ -9,7 +9,7 @@ Parameters:
   pKMSKey:
     Description: The KMS key used by CodeBuild and CodePipeline
     Type: String
-    Default: "{{resolve:ssm:/SDLF2/KMS/CICDKeyId}"
+    Default: "{{resolve:ssm:/SDLF/KMS/CICDKeyId}"
   pEnableVpc:
     Description: Deploy SDLF resources in a VPC
     Type: String
@@ -261,7 +261,7 @@ Resources:
   rGlueJobPackageSsm:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: /SDLF2/CodeBuild/PrepareGlueJobPackage
+      Name: /SDLF/CodeBuild/PrepareGlueJobPackage
       Type: String
       Value: !Ref rGlueJobPackage
       Description: Name of the CodeBuild job that prepares Glue jobs

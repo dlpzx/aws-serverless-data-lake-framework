@@ -209,13 +209,15 @@ Before migrating from SDLF v1 to v2, assess your current implementation:
 Prepare rollback procedures in case of migration issues:
 
 1. **Configuration Rollback**
-   - Keep v1 configurations backed up*
+   - Keep v1 configurations backed up:
+       - we suggest taking a snapshot of the octagon DynamoDB tables
+       - ensuring that parameter files from v1 repository are also backed up.
    - Document rollback procedures
    - Test rollback in non-production environment
 
 2. **Data Rollback**
    - Maintain v1 data infrastructure (S3 Buckets, KMS keys) during migration period
-   - Plan for data synchronization if needed
+   - Plan for data synchronization if needed 
    - Document data recovery procedures
 
 ### Recommended migration approach
@@ -223,8 +225,8 @@ Prepare rollback procedures in case of migration issues:
 Deploy SDLF v2 alongside existing v1 infrastructure (blue/green deployment). To deploy V2 follow the steps in the [workshop](https://catalog.us-east-1.prod.workshops.aws/workshops/501cb14c-91b3-455c-a2a9-d0a21ce68114/en-US/20-production).
 
 1. Deploy v2 DevOps Infrastructure. IMPORTANT: if you are deploying SDLF v2 in the same accounts as SDLF v1, and you are using the same git provider, the repositories names will run into conflicts. In that scenario, you will need to use the `-g` parameter in the commands using `./deploy.sh`. Make sure you use any string different from `sdlf`. In the example below, the repositories for v2 will be called sdlfv2-X. 
-   - `./deploy.sh crossaccount-cicd-roles -d <devops-account-aws-account-id> -p <child-account-aws-profile> -r <aws-region> -f sdlfv2`
-   - `./deploy.sh devops-account -d <child-account-1-aws-account-id>,<child-account-2-aws-account-id> -p <devops-account-aws-profile> -r <aws-region> -g sdlfv2`
+   - `./deploy.sh crossaccount-cicd-roles -d <devops-account-aws-account-id> -p <child-account-aws-profile> -r <aws-region> -c v2`
+   - `./deploy.sh devops-account -d <child-account-1-aws-account-id>,<child-account-2-aws-account-id> -p <devops-account-aws-profile> -r <aws-region> -c v2`
 2. Deploy v2 foundations and team resources using the `<sdlfv2>-main` repository. sdlfv2 represents the value you provided in the `-g` parameter in the previous step.
    - Decide domains in the data mesh - Domains are a NEW concept of SDLF v2 - Choose any domain name except `datalake`
    - Deploy foundations and teams. If you want to avoid conflicting-names issues chose a different team name as in v1. This will ensure pipelines and datasets can be created with the same name without conflicts.
@@ -264,8 +266,9 @@ Blue/Green swap:
    - Test that v2 datasets are accessible from your data applications
 9. Remove v1 upstream data ingestion. 
    - From now onwards data will be process solely with v2
+
 10. Plan and decommission v1
-   - If Code is fully migrated to v2
-   - And Data is fully migrated to v2
-   - And downstream applications only read from v2 datasets
-   - Then we can plan the decommission of sdlf v1 - since everything is infrastructure as code you will need to delete the old CloudFormation stacks from the newest to the oldest to avoid orphan resources.
+    - If Code is fully migrated to v2
+    - And Data is fully migrated to v2
+    - And downstream applications only read from v2 datasets
+    - Then we can plan the decommission of sdlf v1 - since everything is infrastructure as code you will need to delete the old CloudFormation stacks from the newest to the oldest to avoid orphan resources.

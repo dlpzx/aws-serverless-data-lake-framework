@@ -257,7 +257,7 @@ class Foundations(Construct):
             enable_key_rotation=True,
             policy=kms_key_policy,
         )
-        self.kms_key.add_alias("alias/sdlf2-kms-key").apply_removal_policy(RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE)
+        self.kms_key.add_alias("alias/sdlf-kms-key").apply_removal_policy(RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE)
 
         self._external_interface(kms_key_resource_name, "ARN of the KMS key", self.kms_key.key_arn)
 
@@ -400,7 +400,7 @@ class Foundations(Construct):
                     resources=["*"],
                     conditions={
                         "ForAnyValue:StringLike": {
-                            "kms:ResourceAliases": ["alias/sdlf2-kms-key", "alias/sdlf-*-kms-data-key"]
+                            "kms:ResourceAliases": ["alias/sdlf-kms-key", "alias/sdlf-*-kms-data-key"]
                         }
                     },
                 ),
@@ -435,7 +435,7 @@ class Foundations(Construct):
             self,
             "rDeadLetterQueueCatalog",
             removal_policy=RemovalPolicy.DESTROY,
-            queue_name="sdlf2-catalog-dlq",
+            queue_name="sdlf-catalog-dlq",
             retention_period=Duration.days(14),
             visibility_timeout=Duration.seconds(60),
             encryption_master_key=self.kms_key,
@@ -445,7 +445,7 @@ class Foundations(Construct):
             self,
             "rQueueCatalog",
             removal_policy=RemovalPolicy.DESTROY,
-            queue_name="sdlf2-catalog-queue",
+            queue_name="sdlf-catalog-queue",
             retention_period=Duration.days(7),
             visibility_timeout=Duration.seconds(60),
             encryption_master_key=self.kms_key,
@@ -503,7 +503,7 @@ class Foundations(Construct):
                             service="logs",
                             resource="log-group",
                             arn_format=ArnFormat.COLON_RESOURCE_NAME,
-                            resource_name="/aws/lambda/sdlf2-catalog*",
+                            resource_name="/aws/lambda/sdlf-catalog*",
                         )
                     ],
                 ),
@@ -572,7 +572,7 @@ class Foundations(Construct):
             runtime=_lambda.Runtime.PYTHON_3_12,
             code=_lambda.Code.from_asset(os.path.join(dirname, "lambda/catalog/src")),
             handler="lambda_function.lambda_handler",
-            function_name="sdlf2-catalog",
+            function_name="sdlf-catalog",
             description="Catalogs S3 Put and Delete to ObjectMetaDataCatalog",
             memory_size=256,
             timeout=Duration.seconds(60),
@@ -588,7 +588,7 @@ class Foundations(Construct):
             runtime=_lambda.Runtime.PYTHON_3_12,
             code=_lambda.Code.from_asset(os.path.join(dirname, "lambda/catalog-redrive/src")),
             handler="lambda_function.lambda_handler",
-            function_name="sdlf2-catalog-redrive",
+            function_name="sdlf-catalog-redrive",
             description="Redrives Failed S3 Put/Delete to Catalog Lambda",
             memory_size=256,
             timeout=Duration.seconds(60),
