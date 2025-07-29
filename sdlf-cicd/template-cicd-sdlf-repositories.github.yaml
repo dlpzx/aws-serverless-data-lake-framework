@@ -286,7 +286,7 @@ Resources:
     Properties:
       Name: /SDLF/GitHub/MonitoringGitHub
       Type: String
-      Value: !Ref pMonitoringRepository # !GetAtt rMonitoringGitHub.Name
+      Value: !Sub sdlf-${pCustomIdentifier}monitoring # !GetAtt rMonitoringGitHub.Name
       Description: Name of the monitoring repository
 
 Outputs:
