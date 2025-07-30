@@ -29,21 +29,21 @@ Everything is encrypted using SSE-KMS with [S3 Bucket Keys](https://docs.aws.ama
 
 `sdlf-foundations` also puts in place a number of DynamoDB tables:
 
-| Table                                            | Description                                                                               | SSM Parameter                   |
-| ------------------------------------------------ | ----------------------------------------------------------------------------------------- | ------------------------------- |
-| `octagon-ObjectMetadata-{environment}`           | Metadata for all objects in the data lake raw & stage buckets (populated by `sdlf-catalog`) | `/SDLF/Dynamo/ObjectCatalog`  |
-| `octagon-Datasets-{environment}`                 | Metadata for all user-defined datasets (populated by `sdlf-dataset`)                      | `/SDLF/Dynamo/TransformMapping`, `/SDLF/Dynamo/Datasets` |
-| `octagon-Artifacts-{environment}`                | Metadata for all artifacts (currently empty, soon populated by `sdlf-cicd`)               |                                 |
-| `octagon-Metrics-{environment}`                  | User-provided data pipeline metrics                                                       |                                 |
-| `octagon-Configuration-{environment}`            | User-provided key-value configurations                                                    |                                 |
-| `octagon-Teams-{environment}`                    | Metadata for all data teams and notification topics (populated by `sdlf-team`)            | `/SDLF/Dynamo/TeamMetadata`     |
-| `octagon-Pipelines-{environment}`                | Metadata for all data pipeline stages (populated by `sdlf-team`)                          | `/SDLF/Dynamo/Pipelines`        |
-| `octagon-Events-{environment}`                   | Logging (unused)                                                                          |                                 |
-| `octagon-PipelineExecutionHistory-{environment}` | Track pipeline execution progress and history (populated by `sdlf-stageA`, `sdlf-stageB`) |                                 |
-| `octagon-DataSchemas-{environment}`              | Structure of all datasets (populated by `sdlf-replicate`, based on Glue catalog)          | `/SDLF/Dynamo/DataSchemas`      |
-| `octagon-Manifests-{environment}`                | Track manifests and files for manifest-file-based processing                              | `/SDLF/Dynamo/Manifests`        |
+| Table                                                          | Description                                                                                 | SSM Parameter                                              |
+|----------------------------------------------------------------|---------------------------------------------------------------------------------------------|------------------------------------------------------------|
+| `octagon-ObjectMetadata-{environment}{customSuffix}`           | Metadata for all objects in the data lake raw & stage buckets (populated by `sdlf-catalog`) | `/SDLF2/Dynamo/ObjectCatalog`                              |
+| `octagon-Datasets-{environment}{customSuffix}`                 | Metadata for all user-defined datasets (populated by `sdlf-dataset`)                        | `/SDLF2/Dynamo/TransformMapping`, `/SDLF2/Dynamo/Datasets` |
+| `octagon-Artifacts-{environment}{customSuffix}`                | Metadata for all artifacts (currently empty, soon populated by `sdlf-cicd`)                 |                                                            |
+| `octagon-Metrics-{environment}{customSuffix}`                  | User-provided data pipeline metrics                                                         |                                                            |
+| `octagon-Configuration-{environment}{customSuffix}`            | User-provided key-value configurations                                                      |                                                            |
+| `octagon-Teams-{environment}{customSuffix}`                    | Metadata for all data teams and notification topics (populated by `sdlf-team`)              | `/SDLF2/Dynamo/TeamMetadata`                               |
+| `octagon-Pipelines-{environment}{customSuffix}`                | Metadata for all data pipeline stages (populated by `sdlf-team`)                            | `/SDLF2/Dynamo/Pipelines`                                  |
+| `octagon-Events-{environment}{customSuffix}`                   | Logging (unused)                                                                            |                                                            |
+| `octagon-PipelineExecutionHistory-{environment}{customSuffix}` | Track pipeline execution progress and history (populated by `sdlf-stageA`, `sdlf-stageB`)   |                                                            |
+| `octagon-DataSchemas-{environment}{customSuffix}`              | Structure of all datasets (populated by `sdlf-replicate`, based on Glue catalog)            | `/SDLF2/Dynamo/DataSchemas`                                |
+| `octagon-Manifests-{environment}{customSuffix}`                | Track manifests and files for manifest-file-based processing                                | `/SDLF2/Dynamo/Manifests`                                  |
 
-The `sdlf-catalog` Lambda function is used to populate `octagon-ObjectMetadata` automatically whenever a new object is uploaded or deleted from the `raw` and `stage` buckets. The `sdlf-replicate` Lambda function copies the schema of any new Glue database or Glue database whose schema is updated.
+The `sdlf-catalog{customSuffix}` Lambda function is used to populate `octagon-ObjectMetadata` automatically whenever a new object is uploaded or deleted from the `raw` and `stage` buckets. The `sdlf-replicate{customSuffix}` Lambda function copies the schema of any new Glue database or Glue database whose schema is updated.
 
 SSM parameters holding names or ARNs are created for all resources that may be used by other modules.
 
@@ -71,25 +71,25 @@ rExample:
 
 Interfacing with other modules is done through [SSM Parameters](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html). `sdlf-foundations` publishes the following parameters:
 
-| SSM Parameter                              | Description                                                      | Comment                                      |
-| ------------------------------------------ | ---------------------------------------------------------------- | -------------------------------------------- |
-| `/SDLF/Dynamo/ObjectCatalog`               | Name of the DynamoDB used to store metadata                      |                                              |
-| `/SDLF/Dynamo/TransformMapping`            | Name of the DynamoDB used to store mappings to transformation    |                                              |
-| `/SDLF/Dynamo/Pipelines`                   | Name of the DynamoDB used to store pipelines metadata            |                                              |
-| `/SDLF/Dynamo/TeamMetadata`                | Name of the DynamoDB used to store teams metadata                |                                              |
-| `/SDLF/Dynamo/DataSchemas`                 | Name of the DynamoDB used to store data schemas                  |                                              |
-| `/SDLF/Dynamo/Manifests`                   | Name of the DynamoDB used to store manifest process metadata     |                                              |
-| `/SDLF/IAM/LakeFormationDataAccessRole`    | Lake Formation Data Access Role name                             |                                              |
-| `/SDLF/IAM/LakeFormationDataAccessRoleArn` | Lake Formation Data Access Role ARN                              |                                              |
-| `/SDLF/IAM/DataLakeAdminRoleArn`           | Lake Formation Data Lake Admin Role ARN                          |                                              |
-| `/SDLF/KMS/KeyArn`                         | ARN of the default KMS key used for encrypting data lake buckets |                                              |
-| `/SDLF/Misc/pOrg`                          | Name of the Organization owning the datalake                     |                                              |
-| `/SDLF/Misc/pDomain`                       | Data domain name                                                 |                                              |
-| `/SDLF/Misc/pEnv`                          | Environment name                                                 |                                              |
-| `/SDLF/S3/AccessLogsBucket`                | Access Logs S3 bucket name                                       |                                              |
-| `/SDLF/S3/ArtifactsBucket`                 | Artifacts S3 bucket name                                         |                                              |
-| *`/SDLF/S3/CentralBucket`*                 | *Central S3 bucket name*                                         | deprecated, use `/SDLF/S3/RawBucket` instead |
-| `/SDLF/S3/RawBucket`                       | Raw S3 bucket name                                               |                                              |
-| `/SDLF/S3/StageBucket`                     | Stage S3 bucket name                                             |                                              |
-| `/SDLF/S3/AnalyticsBucket`                 | Analytics S3 bucket name                                         |                                              |
-| `/SDLF/S3/AthenaBucket`                    | Athena query results S3 bucket name                              |                                              |
+| SSM Parameter                               | Description                                                      | Comment                                       |
+|---------------------------------------------|------------------------------------------------------------------|-----------------------------------------------|
+| `/SDLF2/Dynamo/ObjectCatalog`               | Name of the DynamoDB used to store metadata                      |                                               |
+| `/SDLF2/Dynamo/TransformMapping`            | Name of the DynamoDB used to store mappings to transformation    |                                               |
+| `/SDLF2/Dynamo/Pipelines`                   | Name of the DynamoDB used to store pipelines metadata            |                                               |
+| `/SDLF2/Dynamo/TeamMetadata`                | Name of the DynamoDB used to store teams metadata                |                                               |
+| `/SDLF2/Dynamo/DataSchemas`                 | Name of the DynamoDB used to store data schemas                  |                                               |
+| `/SDLF2/Dynamo/Manifests`                   | Name of the DynamoDB used to store manifest process metadata     |                                               |
+| `/SDLF2/IAM/LakeFormationDataAccessRole`    | Lake Formation Data Access Role name                             |                                               |
+| `/SDLF2/IAM/LakeFormationDataAccessRoleArn` | Lake Formation Data Access Role ARN                              |                                               |
+| `/SDLF2/IAM/DataLakeAdminRoleArn`           | Lake Formation Data Lake Admin Role ARN                          |                                               |
+| `/SDLF2/KMS/KeyArn`                         | ARN of the default KMS key used for encrypting data lake buckets |                                               |
+| `/SDLF2/Misc/pOrg`                          | Name of the Organization owning the datalake                     |                                               |
+| `/SDLF2/Misc/pDomain`                       | Data domain name                                                 |                                               |
+| `/SDLF2/Misc/pEnv`                          | Environment name                                                 |                                               |
+| `/SDLF2/S3/AccessLogsBucket`                | Access Logs S3 bucket name                                       |                                               |
+| `/SDLF2/S3/ArtifactsBucket`                 | Artifacts S3 bucket name                                         |                                               |
+| *`/SDLF2/S3/CentralBucket`*                 | *Central S3 bucket name*                                         | deprecated, use `/SDLF2/S3/RawBucket` instead |
+| `/SDLF2/S3/RawBucket`                       | Raw S3 bucket name                                               |                                               |
+| `/SDLF2/S3/StageBucket`                     | Stage S3 bucket name                                             |                                               |
+| `/SDLF2/S3/AnalyticsBucket`                 | Analytics S3 bucket name                                         |                                               |
+| `/SDLF2/S3/AthenaBucket`                    | Athena query results S3 bucket name                              |                                               |

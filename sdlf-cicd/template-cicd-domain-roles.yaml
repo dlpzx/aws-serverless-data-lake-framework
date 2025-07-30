@@ -29,7 +29,10 @@ Parameters:
     Description: Deploy SDLF resources in a VPC
     Type: String
     Default: false
-
+  pCustomIdentifier:
+    Description: Add a custom identifier to foundational resource names
+    Type: String
+    Default: ""
 Conditions:
   MultiAccountSetup: !Not [!Equals [!Ref pDevOpsAccountId, !Ref "AWS::AccountId"]]
   UseCustomBucketPrefix: !Not [!Equals [!Ref pCustomBucketPrefix, sdlf]]
@@ -55,6 +58,14 @@ Resources:
       Type: String
       Value: !Ref pEnableVpc
       Description: Deploy SDLF resources in a VPC
+
+  rCustomIdentifierSsm:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /SDLF/CustomIdentifier
+      Type: String
+      Value: !Ref pCustomIdentifier
+      Description: Add a custom identifier to foundational resource names
 
   rDevopsCrossaccountCodePipelineRole:
     Type: AWS::IAM::Role
@@ -120,7 +131,7 @@ Resources:
                   - !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/SDLF/CFN/*
                   - !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/SDLF/VPC/Enabled
                   - !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/SDLF/VPC/SubnetIds
-                  - !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/SDLF/S3/ArtifactsBucket
+                  - !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/SDLF2/S3/ArtifactsBucket
               - Effect: Allow
                 Action:
                   - cloudformation:CreateChangeSet
@@ -596,7 +607,9 @@ Resources:
                   - ssm:ListTagsForResource
                   - ssm:PutParameter
                   - ssm:RemoveTagsFromResource
-                Resource: !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/SDLF/*
+                Resource:
+                  - !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/SDLF/*
+                  - !Sub arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/SDLF2/*
               - Effect: Allow
                 Action:
                   - lakeformation:DeregisterResource # W11 exception

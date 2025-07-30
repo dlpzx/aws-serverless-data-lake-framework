@@ -2,49 +2,14 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: Multi-environment CICD team repos resources in shared DevOps account
 
 Parameters:
+  pCustomIdentifier:
+    Description: Custom identifier for resource names
+    Type: String
+    Default: ""
   pKMSKey:
     Description: The KMS key used by CodeBuild and CodePipeline
     Type: AWS::SSM::Parameter::Value<String>
     Default: /SDLF/KMS/CICDKeyId
-  pCicdRepository:
-    Type: String
-    Default: sdlf-cicd
-  pFoundationsRepository:
-    Type: String
-    Default: sdlf-foundations
-  pTeamRepository:
-    Type: String
-    Default: sdlf-team
-  pPipelineRepository:
-    Type: String
-    Default: sdlf-pipeline
-  pDatasetRepository:
-    Type: String
-    Default: sdlf-dataset
-  pStageARepository:
-    Type: String
-    Default: sdlf-stageA
-  pStageLambdaRepository:
-    Type: String
-    Default: sdlf-stage-lambda
-  pStageBRepository:
-    Type: String
-    Default: sdlf-stageB
-  pStageGlueRepository:
-    Type: String
-    Default: sdlf-stage-glue
-  pDatalakeLibraryRepository:
-    Type: String
-    Default: sdlf-datalakeLibrary
-  pUtilsRepository:
-    Type: String
-    Default: sdlf-utils
-  pMainRepository:
-    Type: String
-    Default: sdlf-main
-  pMonitoringRepository:
-    Type: String
-    Default: sdlf-monitoring
   pEnableMonitoring:
     Description: Build sdlf-monitoring cloudformation module as part of domain pipelines
     Type: AWS::SSM::Parameter::Value<String>
@@ -66,8 +31,8 @@ Resources:
       Code:
         BranchName: main
         S3: ../sdlf-cicd
-      RepositoryDescription: sdlf-cicd repository
-      RepositoryName: !Ref pCicdRepository
+      RepositoryDescription: !Sub sdlf-${pCustomIdentifier}cicd repository
+      RepositoryName: !Sub sdlf-${pCustomIdentifier}cicd
       KmsKeyId: !Ref pKMSKey
 
   rFoundationsCodeCommit:
@@ -81,8 +46,8 @@ Resources:
       Code:
         BranchName: main
         S3: ../sdlf-foundations
-      RepositoryDescription: sdlf-foundations repository
-      RepositoryName: !Ref pFoundationsRepository
+      RepositoryDescription: !Sub sdlf-${pCustomIdentifier}foundations repository
+      RepositoryName: !Sub sdlf-${pCustomIdentifier}foundations
       KmsKeyId: !Ref pKMSKey
 
   rTeamCodeCommit:
@@ -96,8 +61,8 @@ Resources:
       Code:
         BranchName: main
         S3: ../sdlf-team
-      RepositoryDescription: sdlf-team repository
-      RepositoryName: !Ref pTeamRepository
+      RepositoryDescription: !Sub sdlf-${pCustomIdentifier}team repository
+      RepositoryName: !Sub sdlf-${pCustomIdentifier}team
       KmsKeyId: !Ref pKMSKey
 
   rPipelineCodeCommit:
@@ -111,8 +76,8 @@ Resources:
       Code:
         BranchName: main
         S3: ../sdlf-pipeline
-      RepositoryDescription: sdlf-pipeline repository
-      RepositoryName: !Ref pPipelineRepository
+      RepositoryDescription: !Sub sdlf-${pCustomIdentifier}pipeline repository
+      RepositoryName: !Sub sdlf-${pCustomIdentifier}pipeline
       KmsKeyId: !Ref pKMSKey
 
   rDatasetCodeCommit:
@@ -126,8 +91,8 @@ Resources:
       Code:
         BranchName: main
         S3: ../sdlf-dataset
-      RepositoryDescription: sdlf-dataset repository
-      RepositoryName: !Ref pDatasetRepository
+      RepositoryDescription: !Sub sdlf-${pCustomIdentifier}dataset repository
+      RepositoryName: !Sub sdlf-${pCustomIdentifier}dataset
       KmsKeyId: !Ref pKMSKey
 
   rStageACodeCommit:
@@ -141,8 +106,8 @@ Resources:
       Code:
         BranchName: main
         S3: ../sdlf-stageA
-      RepositoryDescription: sdlf-stageA repository
-      RepositoryName: !Ref pStageARepository
+      RepositoryDescription: !Sub sdlf-${pCustomIdentifier}stageA repository
+      RepositoryName: !Sub sdlf-${pCustomIdentifier}stageA
       KmsKeyId: !Ref pKMSKey
 
   rStageLambdaCodeCommit:
@@ -156,8 +121,8 @@ Resources:
       Code:
         BranchName: main
         S3: ../sdlf-stage-lambda
-      RepositoryDescription: sdlf-stage-lambda repository
-      RepositoryName: !Ref pStageLambdaRepository
+      RepositoryDescription: !Sub sdlf-${pCustomIdentifier}stage-lambda repository
+      RepositoryName: !Sub sdlf-${pCustomIdentifier}stage-lambda
       KmsKeyId: !Ref pKMSKey
 
   rStageBCodeCommit:
@@ -171,8 +136,8 @@ Resources:
       Code:
         BranchName: main
         S3: ../sdlf-stageB
-      RepositoryDescription: sdlf-stageB repository
-      RepositoryName: !Ref pStageBRepository
+      RepositoryDescription: !Sub sdlf-${pCustomIdentifier}stageB repository
+      RepositoryName: !Sub sdlf-${pCustomIdentifier}stageB
       KmsKeyId: !Ref pKMSKey
 
   rStageGlueCodeCommit:
@@ -186,8 +151,8 @@ Resources:
       Code:
         BranchName: main
         S3: ../sdlf-stage-glue
-      RepositoryDescription: sdlf-stage-glue repository
-      RepositoryName: !Ref pStageGlueRepository
+      RepositoryDescription: !Sub sdlf-${pCustomIdentifier}stage-glue repository
+      RepositoryName: !Sub sdlf-${pCustomIdentifier}stage-glue
       KmsKeyId: !Ref pKMSKey
 
   rDatalakeLibraryCodeCommit:
@@ -201,8 +166,8 @@ Resources:
       Code:
         BranchName: main
         S3: ../sdlf-datalakeLibrary
-      RepositoryDescription: sdlf-datalakeLibrary repository
-      RepositoryName: !Ref pDatalakeLibraryRepository
+      RepositoryDescription: !Sub sdlf-${pCustomIdentifier}datalakeLibrary repository
+      RepositoryName: !Sub sdlf-${pCustomIdentifier}datalakeLibrary
       KmsKeyId: !Ref pKMSKey
 
   rMainCodeCommit:
@@ -216,8 +181,8 @@ Resources:
       Code:
         BranchName: main
         S3: ./README.md
-      RepositoryDescription: sdlf-main repository
-      RepositoryName: !Ref pMainRepository
+      RepositoryDescription: !Sub sdlf-${pCustomIdentifier}main repository
+      RepositoryName: !Sub sdlf-${pCustomIdentifier}main
       KmsKeyId: !Ref pKMSKey
 
   rMonitoringCodeCommit:
@@ -232,8 +197,8 @@ Resources:
       Code:
         BranchName: main
         S3: ../sdlf-monitoring
-      RepositoryDescription: sdlf-monitoring repository
-      RepositoryName: !Ref pMonitoringRepository
+      RepositoryDescription: !Sub sdlf-${pCustomIdentifier}monitoring repository
+      RepositoryName: !Sub sdlf-${pCustomIdentifier}monitoring
       KmsKeyId: !Ref pKMSKey
 
   rCicdCodeCommitSsm:
@@ -315,14 +280,6 @@ Resources:
       Type: String
       Value: !GetAtt rDatalakeLibraryCodeCommit.Name
       Description: Name of the DatalakeLibrary repository
-
-  rUtilsCodeCommitSsm:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: /SDLF/CodeCommit/UtilsCodeCommit
-      Type: String
-      Value: !Ref pUtilsRepository
-      Description: Name of the Utils repository
 
   rMainCodeCommitSsm:
     Type: AWS::SSM::Parameter

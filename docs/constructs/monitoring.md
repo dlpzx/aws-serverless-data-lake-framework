@@ -27,7 +27,7 @@ rProserveMonitoring:
 
 Interfacing with other modules is done through [SSM Parameters](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html). `sdlf-monitoring` publishes the following parameters:
 
-| SSM Parameter                              | Description                                                      | Comment                                      |
-| ------------------------------------------ | ---------------------------------------------------------------- | -------------------------------------------- |
-| `/SDLF/S3/CloudTrailBucket`                | Name of CloudTrail S3 bucket                                     |                                              |
+| SSM Parameter               | Description                                                      | Comment                                      |
+|-----------------------------| ---------------------------------------------------------------- | -------------------------------------------- |
+| `/SDLF/S3/CloudTrailBucket` | Name of CloudTrail S3 bucket                                     |                                              |
 

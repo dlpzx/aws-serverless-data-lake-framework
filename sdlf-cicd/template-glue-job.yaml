@@ -5,8 +5,8 @@ Description: Deploy Glue jobs
 Parameters:
   pArtifactsBucket:
     Description: The artifacts bucket used by CodeBuild and CodePipeline
-    Type: AWS::SSM::Parameter::Value<String>
-    Default: /SDLF/S3/ArtifactsBucket
+    Type: String
+    Default:  "{{resolve:ssm:/SDLF2/S3/ArtifactsBucket}"
   pTeamName:
     Description: Name of the team (all lowercase, no symbols or spaces)
     Type: String
@@ -61,7 +61,7 @@ Resources:
                 Resource:
                   - !Sub "{{resolve:ssm:/SDLF/KMS/${pTeamName}/InfraKeyId}}"
                   - !Sub "{{resolve:ssm:/SDLF/KMS/${pTeamName}/DataKeyId}}"
-                  - "{{resolve:ssm:/SDLF/KMS/KeyArn}}"
+                  - "{{resolve:ssm:/SDLF2/KMS/KeyArn}}"
 
   "Fn::ForEach::GlueJobResources":
   - GlueJobName

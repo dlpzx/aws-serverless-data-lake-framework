@@ -45,7 +45,8 @@ def lambda_handler(event, context):
     try:
         environment = os.getenv("ENVIRONMENT")
         team_name = os.getenv("TEAM_NAME")
-        table = f"octagon-Datasets-{environment}"
+        custom_octagon_suffix = os.getenv("CUSTOM_OCTAGON_SUFFIX", "")
+        table = f"octagon-Datasets-{environment}{custom_octagon_suffix}"
 
         paginator = ssm.get_paginator("get_parameters_by_path")
         datasets_pages = paginator.paginate(Path=f"/SDLF/Datasets/{team_name}")
